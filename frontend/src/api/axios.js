@@ -28,4 +28,12 @@ const api = axios.create({
   timeout: 15000 // 15 second timeout to prevent infinite loading screens
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.warn('[DINEVO API Warning]', error?.config?.url, error?.message);
+    return Promise.reject(error);
+  }
+);
+
 export default api;

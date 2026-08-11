@@ -21,12 +21,14 @@ export function getQrTargetUrl(tableCode, customHost = null) {
     const { origin, hostname } = window.location;
     // If running locally on localhost/127.0.0.1, use active Wi-Fi LAN IP so mobile phones on the same Wi-Fi can scan & connect!
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      const lanIp = (import.meta && import.meta.env && import.meta.env.VITE_LAN_IP) || '10.115.242.218';
+      const dynamicLanIp = sessionStorage.getItem('dinevo_lan_ip');
+      const lanIp = dynamicLanIp || (import.meta && import.meta.env && import.meta.env.VITE_LAN_IP) || '10.115.242.218';
       const port = window.location.port || '3000';
       return `http://${lanIp}:${port}/table/${code}`;
     }
     return `${origin}/table/${code}`;
   }
 
-  return `http://10.115.242.218:3000/table/${code}`;
+  const fallbackLanIp = (typeof window !== 'undefined' && sessionStorage.getItem('dinevo_lan_ip')) || '10.115.242.218';
+  return `http://${fallbackLanIp}:3000/table/${code}`;
 }

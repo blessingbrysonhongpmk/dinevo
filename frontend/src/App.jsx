@@ -15,6 +15,8 @@ import Login from './pages/Login';
 import UserStandalonePage from './pages/UserStandalonePage';
 import DemoPrototype from './pages/DemoPrototype';
 
+import api from './api/axios';
+
 // Protected Route Component for Admin Access
 function ProtectedAdminRoute({ children }) {
   const token = localStorage.getItem('dinevo_token');
@@ -27,6 +29,14 @@ function ProtectedAdminRoute({ children }) {
 function MainLayout() {
   const location = useLocation();
   const isFullscreenView = location.pathname.startsWith('/demo') || location.pathname.startsWith('/user') || location.pathname.startsWith('/login');
+
+  React.useEffect(() => {
+    api.get('/health').then((res) => {
+      if (res.data && res.data.lanIp) {
+        sessionStorage.setItem('dinevo_lan_ip', res.data.lanIp);
+      }
+    }).catch(() => {});
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

@@ -17,19 +17,39 @@ const customerRoutes = require('./routes/customerRoutes');
 const notFoundMiddleware = require('./middleware/notFoundMiddleware');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
+const os = require('os');
+
+function getLocalIpAddress() {
+  try {
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal && iface.address !== '127.0.0.1') {
+          return iface.address;
+        }
+      }
+    }
+  } catch (e) {
+    // fallback
+  }
+  return 'localhost';
+}
+
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
   const mongooseConnected = mongoose.connection.readyState === 1;
   const isDbActive = mongooseConnected || dbStore.isDbConnected();
+  const lanIp = getLocalIpAddress();
   res.json({
     status: 'ok',
     database: isDbActive ? 'connected' : 'disconnected',
     databaseName: 'dinevo',
     connectionState: mongooseConnected ? 'Mongoose MongoDB Active' : 'Active Store',
+    lanIp,
     version: '2.1.0'
   });
 });
