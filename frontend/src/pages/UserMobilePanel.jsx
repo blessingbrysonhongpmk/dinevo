@@ -50,21 +50,31 @@ export default function UserMobilePanel({ embedded = false }) {
 
   const fetchMenu = useCallback(async (restaurantId) => {
     try {
-      const res = await api.get(`/menu?restaurant=${restaurantId}`);
-      const items = res.data || [];
+      const url = restaurantId ? `/foods?restaurant=${restaurantId}` : '/foods';
+      const res = await api.get(url);
+      const rawData = res.data;
+      const items = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
       setMenuItems(items);
       const cats = ['All', ...new Set(items.map((i) => i.category).filter(Boolean))];
       setCategories(cats);
     } catch (err) {
-      console.warn('Failed to fetch menu', err);
+      console.warn('Failed to fetch menu from /foods, trying /menu fallback', err);
+      try {
+        const fallbackRes = await api.get('/menu');
+        const items = Array.isArray(fallbackRes.data) ? fallbackRes.data : (Array.isArray(fallbackRes.data?.data) ? fallbackRes.data.data : []);
+        setMenuItems(items);
+        const cats = ['All', ...new Set(items.map((i) => i.category).filter(Boolean))];
+        setCategories(cats);
+      } catch (e2) {}
     }
   }, []);
 
   useEffect(() => {
     fetchTables();
+    fetchMenu();
     const interval = setInterval(fetchTables, 3000);
     return () => clearInterval(interval);
-  }, [fetchTables]);
+  }, [fetchTables, fetchMenu]);
 
   // Bind active session from CartContext if present
   useEffect(() => {
