@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useCart } from '../context/CartContext';
 import { QrIcon, ShieldCheckIcon } from '../components/Icons';
+import QRScanner from '../components/QRScanner';
 
 export default function TableEntry() {
   const { tableCode: paramCode } = useParams();
@@ -11,43 +12,57 @@ export default function TableEntry() {
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [invalidQr, setInvalidQr] = useState(false);
+  const [occupiedErr, setOccupiedErr] = useState(false);
   const [verifiedTable, setVerifiedTable] = useState(null);
   const [scanning, setScanning] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
 
   const navigate = useNavigate();
   const { startSession, session } = useCart();
 
+  useEffect(() => {
+    const checkDevice = () => {
+      const isLargeScreen = window.innerWidth > 768;
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsDesktop(isLargeScreen && !hasTouch);
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
   const resolveTable = async (tCode) => {
     if (!tCode) return;
     setLoading(true);
-    setError('');
+    setInvalidQr(false);
+    setOccupiedErr(false);
     try {
-      // Call session verification API
+      // First book/attach session via backend
+      const bookRes = await api.patch(`/tables/${tCode}/book`);
+      if (bookRes.data.success) {
+        startSession(bookRes.data.session);
+        setVerifiedTable(bookRes.data.session);
+        setScanning(false);
+        return;
+      }
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setOccupiedErr(true);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // Try fallback session lookup
+    try {
       const res = await api.post('/sessions', { tableCode: tCode });
       startSession(res.data);
       setVerifiedTable(res.data);
-    } catch (err) {
-      console.error('Session error:', err);
-      // Fallback table lookup if session post fails
-      try {
-        const r = await api.get(`/tables/${tCode}`);
-        const fallbackSession = {
-          sessionCode: `D${Math.floor(1000 + Math.random() * 9000)}`,
-          tableNumber: r.data.tableNumber || '08',
-          tableCode: tCode,
-          restaurantId: r.data.restaurantId,
-          restaurantName: r.data.restaurantName || 'DINEVO Kitchen',
-          tagline: r.data.tagline || 'Gourmet Table Ordering',
-          verified: true
-        };
-        startSession(fallbackSession);
-        setVerifiedTable(fallbackSession);
-      } catch {
-        setError(err.response?.data?.message || 'Table QR code invalid. Try DINEVO-T08, DINEVO-T01, or DV-T1.');
-      }
+      setScanning(false);
+    } catch {
+      setInvalidQr(true);
     } finally {
       setLoading(false);
     }
@@ -64,78 +79,22 @@ export default function TableEntry() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paramCode, queryCode]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!code.trim()) return;
-    resolveTable(code.trim().toUpperCase());
-  };
-
-  const startCamera = async () => {
-    setScanning(true);
-    setError('');
-    try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } else {
-        throw new Error('Camera hardware not supported');
-      }
-    } catch (err) {
-      console.warn('Camera error:', err);
-      setError('Camera access is unavailable. Please grant camera permission or enter table code manually.');
-      setScanning(false);
+  const handleScanSuccess = (scannedCode) => {
+    if (scannedCode) {
+      setCode(scannedCode);
+      resolveTable(scannedCode);
     }
-  };
-
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop());
-      streamRef.current = null;
-    }
-    setScanning(false);
-  };
-
-  const simulateScan = (simCode) => {
-    stopCamera();
-    setCode(simCode);
-    resolveTable(simCode);
   };
 
   return (
-    <div className="dv-entry-wrap">
-      <div className="container-dv">
-        <div className="dv-entry-card">
+    <div className="dv-entry-wrap" style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+      <div className="container-dv" style={{ maxWidth: '480px', width: '100%' }}>
+        <div className="dv-entry-card" style={{ background: '#FFFFFF', borderRadius: '24px', padding: '32px', border: '2px solid #E5DECF', boxShadow: '0 20px 50px rgba(0,0,0,0.08)' }}>
+          {/* VERIFIED TABLE STATE */}
           {verifiedTable ? (
-            <div style={{ textAlign: 'center', padding: '10px 0' }}>
-              <div className="dv-logo" style={{ fontSize: '1.4rem', marginBottom: 12 }}>
-                DINE<span>VO</span>
-              </div>
-              <div style={{ height: 1, background: 'var(--line)', margin: '14px 0 20px' }} />
-
-              <span className="eyebrow" style={{ color: 'var(--ink-soft)' }}>Welcome to DINEVO</span>
-              <h2 style={{ fontSize: '1.8rem', marginTop: 6, color: 'var(--ink)' }}>
-                {verifiedTable.restaurantName}
-              </h2>
-
-              <div
-                style={{
-                  background: 'var(--cream)',
-                  border: '1px solid var(--line)',
-                  borderRadius: 'var(--r-md)',
-                  padding: '20px',
-                  margin: '20px 0 16px'
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 700, color: 'var(--ink)' }}>
-                  Table {verifiedTable.tableNumber}
-                </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.88rem', color: 'var(--gold)', marginTop: 4 }}>
-                  Dining Session #{verifiedTable.sessionCode}
-                </div>
+            <div style={{ textAlign: 'center' }}>
+              <div className="dv-logo" style={{ fontSize: '1.8rem', marginBottom: 12 }}>
+                DINE<span style={{ color: 'var(--gold, #F77F00)' }}>VO</span>
               </div>
 
               <div
@@ -143,160 +102,135 @@ export default function TableEntry() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
-                  background: 'var(--sage-tint)',
-                  color: 'var(--sage-dark)',
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  padding: '8px 18px',
-                  borderRadius: 'var(--r-pill)',
-                  marginBottom: 20
+                  background: 'rgba(6,214,160,0.14)',
+                  color: '#048A65',
+                  fontSize: '0.9rem',
+                  fontWeight: 800,
+                  padding: '8px 20px',
+                  borderRadius: '999px',
+                  marginBottom: 16
                 }}
               >
-                <ShieldCheckIcon width={18} height={18} /> ✓ Table Verified
+                <ShieldCheckIcon width={18} height={18} /> ✓ TABLE VERIFIED
               </div>
 
-              <p style={{ color: 'var(--ink-soft)', marginBottom: 24, fontSize: '0.95rem' }}>
-                Welcome to your dining session. Explore today's menu and order directly to your table.
+              <h2 style={{ fontSize: '2.4rem', marginTop: 4, color: '#1A1721', fontWeight: 800 }}>
+                TABLE {verifiedTable.tableNumber}
+              </h2>
+
+              <p style={{ color: '#666666', marginTop: 6, fontSize: '0.95rem' }}>
+                Welcome to your table at <strong>{verifiedTable.restaurantName || 'DINEVO Kitchen'}</strong>.
               </p>
 
               <button
                 className="btn-dv btn-burgundy btn-block"
-                style={{ fontSize: '1.08rem', padding: '15px 28px' }}
-                onClick={() => navigate('/menu')}
+                style={{ fontSize: '1.1rem', padding: '15px 28px', fontWeight: 800, marginTop: 24 }}
+                onClick={() => navigate('/user')}
               >
-                Explore Menu
-              </button>
-
-              <button
-                style={{
-                  marginTop: 16,
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--ink-faint)',
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  textDecoration: 'underline'
-                }}
-                onClick={() => setVerifiedTable(null)}
-              >
-                Switch Table or Re-scan
+                VIEW MENU
               </button>
             </div>
-
-          ) : (
-            <>
-              <div className="dv-qr-frame">
-                <span className="corner tl" />
-                <span className="corner tr" />
-                <span className="corner bl" />
-                <span className="corner br" />
-                {scanning ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <QrIcon width={64} height={64} style={{ color: '#E4C77B' }} />
-                )}
-              </div>
-
-              <div style={{ textAlign: 'center', marginBottom: 6 }}>
-                <span className="eyebrow">Table Ordering</span>
-              </div>
-              <h2 style={{ textAlign: 'center', fontSize: '1.5rem', marginBottom: 8 }}>
-                Scan Table QR Code
+          ) : occupiedErr ? (
+            /* TABLE OCCUPIED STATE */
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', marginBottom: 10 }}>🔒</div>
+              <h2 style={{ fontSize: '1.6rem', color: '#E63946', fontWeight: 800 }}>
+                TABLE UNAVAILABLE
               </h2>
-              <p style={{ textAlign: 'center', color: 'var(--ink-soft)', fontSize: '0.9rem' }}>
-                Point your phone camera at the table QR code to start your dining session.
+              <p style={{ color: '#555555', fontSize: '0.92rem', marginTop: 8, marginBottom: 24 }}>
+                This table is currently occupied by another active dining session.
+              </p>
+              <Link to="/demo" className="btn-dv btn-gold btn-block" style={{ padding: '14px', fontWeight: 800 }}>
+                OPEN USER PANEL PROTOTYPE
+              </Link>
+            </div>
+          ) : invalidQr ? (
+            /* INVALID QR STATE */
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', color: '#E63946', marginBottom: 10 }}>✕</div>
+              <h2 style={{ fontSize: '1.6rem', color: '#E63946', fontWeight: 800 }}>
+                INVALID TABLE QR
+              </h2>
+              <p style={{ color: '#555555', fontSize: '0.92rem', marginTop: 8, marginBottom: 24 }}>
+                This QR code is not recognized by DINEVO.
+              </p>
+              <Link to="/demo" className="btn-dv btn-gold btn-block" style={{ padding: '14px', fontWeight: 800 }}>
+                OPEN USER PANEL PROTOTYPE
+              </Link>
+            </div>
+          ) : scanning ? (
+            /* ACTIVE MOBILE CAMERA SCANNER */
+            <div>
+              <h2 style={{ textAlign: 'center', fontSize: '1.3rem', marginBottom: 14 }}>
+                SCAN YOUR TABLE QR
+              </h2>
+              <QRScanner
+                onScanSuccess={handleScanSuccess}
+                onClose={() => setScanning(false)}
+              />
+            </div>
+          ) : (
+            /* DESKTOP / MOBILE NEW LANDING CARD */
+            <div style={{ textAlign: 'center' }}>
+              <div className="dv-logo" style={{ fontSize: '2.4rem', marginBottom: 2 }}>
+                DINE<span style={{ color: 'var(--gold, #F77F00)' }}>VO</span>
+              </div>
+              <div style={{ fontSize: '0.78rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#666', fontWeight: 700, marginBottom: 20 }}>
+                PREMIUM DIGITAL DINING
+              </div>
+
+              <p style={{ color: '#555555', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: 28 }}>
+                Scan your table. Choose your food. Pay securely. We'll serve it to your table.
               </p>
 
-              {scanning ? (
-                <div style={{ marginTop: 16, textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--gold)', marginBottom: 12 }}>
-                    Scanning table QR... Select demo table:
-                  </p>
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button className="dv-cat-chip" onClick={() => simulateScan('DINEVO-T08')}>Table 08</button>
-                    <button className="dv-cat-chip" onClick={() => simulateScan('DINEVO-T01')}>Table 01</button>
-                    <button className="dv-cat-chip" onClick={() => simulateScan('DV-T2')}>Table 02</button>
-                  </div>
-                  <button
-                    className="btn-dv btn-outline btn-block"
-                    style={{ marginTop: 14 }}
-                    onClick={stopCamera}
-                  >
-                    Close Camera
-                  </button>
-                </div>
-              ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <button
-                  type="button"
                   className="btn-dv btn-gold btn-block"
-                  style={{ marginTop: 18 }}
-                  onClick={startCamera}
+                  style={{ padding: '14px', fontSize: '1rem', fontWeight: 800 }}
+                  onClick={() => {
+                    if (isDesktop) {
+                      setShowQrModal(true);
+                    } else {
+                      setScanning(true);
+                    }
+                  }}
                 >
-                  <QrIcon width={18} height={18} /> Open Camera Scanner
+                  <QrIcon width={18} height={18} /> SCAN TABLE QR
                 </button>
-              )}
 
-              <div className="dv-or-divider">or enter table code manually</div>
-
-              <form onSubmit={handleSubmit}>
-                <input
-                  className="dv-input"
-                  placeholder="e.g. DINEVO-T08 or DV-T1"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  autoCapitalize="characters"
-                />
-                {error && (
-                  <p style={{ color: 'var(--chili)', fontSize: '0.85rem', marginTop: 10 }}>{error}</p>
-                )}
-                <button
-                  type="submit"
-                  className="btn-dv btn-primary btn-block"
-                  style={{ marginTop: 18 }}
-                  disabled={loading}
+                <Link
+                  to="/demo"
+                  className="btn-dv btn-outline btn-block"
+                  style={{ padding: '14px', fontSize: '1rem', fontWeight: 800 }}
                 >
-                  {loading ? <span className="dv-spinner" /> : 'Verify Table & Session'}
-                </button>
-              </form>
-
-              <div style={{ marginTop: 22, textAlign: 'center' }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--ink-faint)', display: 'block', marginBottom: 6 }}>
-                  Quick test table shortcuts:
-                </span>
-                <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
-                  {['DINEVO-T08', 'DINEVO-T01', 'DINEVO-T02', 'DV-T1'].map((tc) => (
-                    <button
-                      key={tc}
-                      type="button"
-                      style={{
-                        background: 'var(--cream)',
-                        border: '1px solid var(--line)',
-                        borderRadius: 'var(--r-pill)',
-                        padding: '4px 10px',
-                        fontSize: '0.75rem',
-                        fontFamily: 'var(--font-mono)',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => {
-                        setCode(tc);
-                        resolveTable(tc);
-                      }}
-                    >
-                      {tc}
-                    </button>
-                  ))}
-                </div>
+                  OPEN USER PANEL (DEMO)
+                </Link>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
+
+      {/* DESKTOP QR SCAN EXPLANATION MODAL */}
+      {showQrModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', padding: '20px' }}>
+          <div style={{ background: '#FFFFFF', borderRadius: '24px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center', color: '#1A1721', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 12 }}>📱</div>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: 10 }}>SCAN TABLE QR CODE</h3>
+            <p style={{ fontSize: '0.92rem', color: '#555555', lineHeight: 1.5, marginBottom: 24 }}>
+              Use your phone camera to scan the physical QR code placed on your restaurant table.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <Link to="/demo" className="btn-dv btn-gold btn-block" onClick={() => setShowQrModal(false)}>
+                Open User Panel Prototype
+              </Link>
+              <button className="btn-dv btn-outline btn-block" onClick={() => setShowQrModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

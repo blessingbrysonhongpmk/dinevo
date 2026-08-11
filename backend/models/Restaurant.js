@@ -11,7 +11,9 @@ const RestaurantSchema = new mongoose.Schema(
     tables: [
       {
         tableNumber: { type: String, required: true },
-        code: { type: String, required: true } // used for QR / table entry lookup
+        code: { type: String, required: true },
+        status: { type: String, enum: ['AVAILABLE', 'OCCUPIED', 'ORDERING', 'PREPARING', 'READY', 'SERVING', 'COMPLETED'], default: 'AVAILABLE' },
+        activeSession: { type: String, default: null }
       }
     ]
   },

@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const dbStore = require('./config/dbStore');
 
+const authRoutes = require('./routes/authRoutes');
 const restaurantRoutes = require('./routes/restaurantRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const menuRoutes = require('./routes/menuRoutes');
@@ -31,11 +32,12 @@ app.get('/api/health', (req, res) => {
     database: isDbActive ? 'connected' : 'disconnected',
     databaseName: 'dinevo',
     connectionState: mongooseConnected ? 'Mongoose MongoDB Active' : 'Active Store',
-    version: '2.0.0'
+    version: '2.1.0'
   });
 });
 
 
+app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/menu', menuRoutes);

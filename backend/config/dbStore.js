@@ -476,6 +476,9 @@ const dbStore = {
         const tbl = rest.tables.find((t) => t.code === tableCode || t.tableNumber === tableCode);
         if (tbl) {
           tbl.status = status;
+          if (status === 'AVAILABLE') {
+            tbl.activeSession = null;
+          }
           await rest.save();
         }
       }
@@ -483,9 +486,110 @@ const dbStore = {
       const rest = memoryDb.restaurants[0];
       if (rest.tables) {
         const tbl = rest.tables.find((t) => t.code === tableCode || t.tableNumber === tableCode);
-        if (tbl) tbl.status = status;
+        if (tbl) {
+          tbl.status = status;
+          if (status === 'AVAILABLE') {
+            tbl.activeSession = null;
+          }
+        }
       }
     }
+  },
+
+  // Atomic table booking — prevents race conditions
+  async bookTable(tableCode) {
+    const cleanCode = (tableCode || '').trim().toUpperCase();
+
+    if (isConnected) {
+      // Use $elemMatch to ensure exact table code and status match the same subdocument
+      const result = await RestaurantModel.findOneAndUpdate(
+        {
+          tables: {
+            $elemMatch: {
+              code: { $regex: new RegExp(`^${cleanCode}$`, 'i') },
+              status: { $regex: /^AVAILABLE$/i }
+            }
+          }
+        },
+        {
+          $set: {
+            'tables.$.status': 'OCCUPIED',
+            'tables.$.activeSession': generateSessionCode()
+          }
+        },
+        { new: true }
+      );
+
+      if (!result) {
+        // Check if table exists at all
+        const rest = await RestaurantModel.findOne({
+          'tables.code': { $regex: new RegExp(`^${cleanCode}$`, 'i') }
+        });
+        if (!rest) {
+          return { success: false, message: 'Table not found' };
+        }
+        return { success: false, message: 'Table is already occupied' };
+      }
+
+      const table = result.tables.find(
+        (t) => t.code && t.code.trim().toUpperCase() === cleanCode
+      );
+      return { success: true, table, restaurantId: result._id, restaurantName: result.name };
+    }
+
+    // In-memory fallback
+    if (memoryDb.restaurants.length > 0) {
+      const rest = memoryDb.restaurants[0];
+      const tbl = rest.tables ? rest.tables.find((t) => t.code && t.code.trim().toUpperCase() === cleanCode) : null;
+      if (!tbl) {
+        return { success: false, message: 'Table not found' };
+      }
+      if (tbl.status && tbl.status.toUpperCase() !== 'AVAILABLE') {
+        return { success: false, message: 'Table is already occupied' };
+      }
+      tbl.status = 'OCCUPIED';
+      tbl.activeSession = generateSessionCode();
+      return { success: true, table: tbl, restaurantId: rest._id, restaurantName: rest.name };
+    }
+
+    return { success: false, message: 'No restaurant found' };
+  },
+
+  // Release table back to AVAILABLE
+  async releaseTable(tableCode) {
+    const cleanCode = (tableCode || '').trim().toUpperCase();
+
+    if (isConnected) {
+      const result = await RestaurantModel.findOneAndUpdate(
+        {
+          tables: {
+            $elemMatch: {
+              code: { $regex: new RegExp(`^${cleanCode}$`, 'i') }
+            }
+          }
+        },
+        {
+          $set: {
+            'tables.$.status': 'AVAILABLE',
+            'tables.$.activeSession': null
+          }
+        },
+        { new: true }
+      );
+      if (!result) return { success: false, message: 'Table not found' };
+      const table = result.tables.find((t) => t.code && t.code.trim().toUpperCase() === cleanCode);
+      return { success: true, table };
+    }
+
+    if (memoryDb.restaurants.length > 0) {
+      const rest = memoryDb.restaurants[0];
+      const tbl = rest.tables ? rest.tables.find((t) => t.code && t.code.trim().toUpperCase() === cleanCode) : null;
+      if (!tbl) return { success: false, message: 'Table not found' };
+      tbl.status = 'AVAILABLE';
+      tbl.activeSession = null;
+      return { success: true, table: tbl };
+    }
+    return { success: false, message: 'No restaurant found' };
   },
 
   async createFoodItem(data) {
