@@ -33,7 +33,7 @@ export default function HeroSection({ session }) {
   };
 
   const sampleQrUrl = getQrTargetUrl('DINEVO-T01', customHost || null);
-  const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(sampleQrUrl)}`;
+  const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&margin=10&data=${encodeURIComponent(sampleQrUrl)}`;
 
   return (
     <section className="dv-hero" style={{ padding: '60px 0 40px' }}>

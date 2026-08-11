@@ -37,7 +37,7 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
   };
 
   const totalAmount = order?.total || order?.totalAmount || 0;
-  const upiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=upi://pay?pa=dinevo@upi%26pn=DINEVO%20Restaurant%26am=${totalAmount}%26cu=INR`;
+  const upiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&margin=10&data=upi://pay?pa=dinevo@upi%26pn=DINEVO%20Restaurant%26am=${totalAmount}%26cu=INR`;
 
   return (
     <div

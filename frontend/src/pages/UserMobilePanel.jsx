@@ -477,7 +477,7 @@ export default function UserMobilePanel({ embedded = false }) {
 
       <div className="v40-qr-box">
         <img
-          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=dinevo@upi%26pn=DINEVO%26am=${cartTotal}`}
+          src={`https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&margin=10&data=upi://pay?pa=dinevo@upi%26pn=DINEVO%26am=${cartTotal}`}
           alt="Payment QR"
           className="v40-qr-img"
         />

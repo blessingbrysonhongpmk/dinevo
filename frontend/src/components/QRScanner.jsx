@@ -5,8 +5,23 @@ import { QrIcon } from './Icons';
 export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
   const [cameraState, setCameraState] = useState('initializing'); // 'initializing', 'active', 'denied', 'error', 'unsupported'
   const [errorMessage, setErrorMessage] = useState('');
+  const [uploading, setUploading] = useState(false);
   const scannerRef = useRef(null);
+  const fileInputRef = useRef(null);
   const elementId = 'dinevo-qr-reader';
+
+  const parseTableCode = (decodedText) => {
+    if (!decodedText) return '';
+    let tableCode = decodedText.trim();
+    if (tableCode.includes('/table/')) {
+      const parts = tableCode.split('/table/');
+      tableCode = parts[parts.length - 1].split('?')[0].split('#')[0];
+    } else if (tableCode.includes('table=')) {
+      const urlParams = new URLSearchParams(tableCode.split('?')[1]);
+      tableCode = urlParams.get('table') || tableCode;
+    }
+    return tableCode.toUpperCase();
+  };
 
   useEffect(() => {
     let html5QrcodeScanner = null;
@@ -26,9 +41,15 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
         scannerRef.current = html5QrcodeScanner;
 
         const config = {
-          fps: 10,
-          qrbox: { width: 220, height: 220 },
-          aspectRatio: 1.0
+          fps: 20,
+          qrbox: (w, h) => ({
+            width: Math.min(w * 0.9, 320),
+            height: Math.min(h * 0.9, 320)
+          }),
+          aspectRatio: 1.0,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
         };
 
         await html5QrcodeScanner.start(
@@ -36,32 +57,16 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
           config,
           (decodedText) => {
             if (!isMounted) return;
-            // Parse table code from decoded text
-            // e.g. "http://domain.com/table/DINEVO-T01" -> "DINEVO-T01"
-            let tableCode = decodedText.trim();
-            if (tableCode.includes('/table/')) {
-              const parts = tableCode.split('/table/');
-              tableCode = parts[parts.length - 1].split('?')[0].split('#')[0];
-            } else if (tableCode.includes('table=')) {
-              const urlParams = new URLSearchParams(tableCode.split('?')[1]);
-              tableCode = urlParams.get('table') || tableCode;
-            }
-
-            // Stop scanner and notify parent
-            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-              html5QrcodeScanner
-                .stop()
-                .then(() => {
-                  if (onScanSuccess) onScanSuccess(tableCode.toUpperCase());
-                })
-                .catch(() => {
-                  if (onScanSuccess) onScanSuccess(tableCode.toUpperCase());
-                });
-            } else if (onScanSuccess) {
-              onScanSuccess(tableCode.toUpperCase());
+            const tableCode = parseTableCode(decodedText);
+            if (tableCode && onScanSuccess) {
+              if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                html5QrcodeScanner.stop().then(() => onScanSuccess(tableCode)).catch(() => onScanSuccess(tableCode));
+              } else {
+                onScanSuccess(tableCode);
+              }
             }
           },
-          (errorMessage) => {
+          () => {
             // Ignore frame scan failures
           }
         );
@@ -76,10 +81,10 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
         const strErr = String(err).toLowerCase();
         if (strErr.includes('notallowederror') || strErr.includes('permission denied')) {
           setCameraState('denied');
-          setErrorMessage('Camera permission was denied. Please allow camera access to scan your table QR code.');
+          setErrorMessage('Camera permission was denied. You can still upload a QR photo below!');
         } else {
           setCameraState('error');
-          setErrorMessage('Unable to start camera scanner. Please make sure no other app is using your camera.');
+          setErrorMessage('Unable to start camera scanner. Use the Upload QR Photo button below!');
         }
         if (onScanError) onScanError(err);
       }
@@ -87,7 +92,6 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
 
     startScanner();
 
-    // Mandatory cleanup on unmount
     return () => {
       isMounted = false;
       if (scannerRef.current) {
@@ -103,51 +107,120 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
     };
   }, []);
 
+  // Handle Photo / Gallery Image Upload Scan
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setErrorMessage('');
+
+    try {
+      let instance = scannerRef.current;
+      if (!instance) {
+        instance = new Html5Qrcode(elementId);
+        scannerRef.current = instance;
+      }
+
+      const decodedResult = await instance.scanFileV2(file, false);
+      const text = decodedResult?.decodedText || decodedResult;
+      const tableCode = parseTableCode(text);
+
+      if (tableCode) {
+        if (onScanSuccess) onScanSuccess(tableCode);
+      } else {
+        alert('Could not detect a valid DINEVO Table QR code in the uploaded photo. Please try a clearer picture.');
+      }
+    } catch (err) {
+      console.error('File scan error:', err);
+      alert('Unable to decode QR code from the selected image. Please make sure the photo clearly shows the Table QR code.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="dv-scanner-wrap" style={{ textAlign: 'center' }}>
       <div
         id={elementId}
         style={{
           width: '100%',
-          maxWidth: '300px',
+          maxWidth: '320px',
           margin: '0 auto',
-          borderRadius: '16px',
+          borderRadius: '20px',
           overflow: 'hidden',
           background: '#1A1721',
           minHeight: '260px',
-          position: 'relative'
+          position: 'relative',
+          border: '2px solid var(--gold, #F77F00)',
+          boxShadow: '0 12px 32px rgba(0,0,0,0.3)'
         }}
       />
 
       {cameraState === 'initializing' && (
         <div style={{ marginTop: '14px', color: 'var(--gold, #F77F00)', fontSize: '0.88rem', fontWeight: 600 }}>
           <span className="dv-spinner" style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
-          Requesting camera access...
+          Opening camera scanner...
         </div>
       )}
 
       {cameraState === 'active' && (
-        <p style={{ marginTop: '14px', color: 'var(--ink-soft, #666)', fontSize: '0.85rem' }}>
-          Point your mobile camera at the Table QR code
+        <p style={{ marginTop: '12px', color: '#AAA', fontSize: '0.85rem' }}>
+          Point camera at QR code or upload a photo below
         </p>
       )}
 
       {(cameraState === 'denied' || cameraState === 'error' || cameraState === 'unsupported') && (
-        <div style={{ marginTop: '16px', padding: '16px', background: 'var(--chili-tint, rgba(230,57,70,0.1))', borderRadius: '12px', border: '1px solid rgba(230,57,70,0.3)' }}>
-          <div style={{ fontWeight: 700, color: 'var(--chili, #E63946)', fontSize: '0.92rem', marginBottom: '6px' }}>
-            CAMERA ACCESS NEEDED
-          </div>
-          <p style={{ fontSize: '0.82rem', color: 'var(--ink, #333)', margin: 0 }}>
+        <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(230,57,70,0.12)', borderRadius: '12px', border: '1px solid rgba(230,57,70,0.3)' }}>
+          <p style={{ fontSize: '0.82rem', color: '#FFD1D1', margin: 0 }}>
             {errorMessage}
           </p>
         </div>
       )}
 
+      {/* PHOTO / GALLERY UPLOAD BUTTON */}
+      <div style={{ marginTop: '16px' }}>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          id="qr-file-upload"
+          onChange={handleFileUpload}
+          style={{ display: 'none' }}
+        />
+        <label
+          htmlFor="qr-file-upload"
+          className="btn-dv btn-gold btn-block"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            padding: '12px 18px',
+            fontSize: '0.9rem',
+            fontWeight: 800
+          }}
+        >
+          {uploading ? (
+            <>
+              <span className="dv-spinner" style={{ width: 18, height: 18 }} />
+              Scanning QR Photo...
+            </>
+          ) : (
+            <>
+              📷 Upload QR Photo / Gallery Image
+            </>
+          )}
+        </label>
+      </div>
+
       {onClose && (
         <button
           type="button"
           className="btn-dv btn-outline btn-block"
-          style={{ marginTop: '16px' }}
+          style={{ marginTop: '12px' }}
           onClick={onClose}
         >
           Close Scanner
