@@ -18,6 +18,7 @@ export default function Navbar() {
           </Link>
           <nav style={{ display: 'flex', gap: 16, fontSize: '0.88rem', color: 'var(--cream)', opacity: 0.9 }}>
             <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>Home</Link>
+            <Link to="/user" style={{ textDecoration: 'none', color: '#FFD700', fontWeight: 700 }}>User Panel</Link>
             <Link to={session ? "/menu" : "/table"} style={{ textDecoration: 'none', color: 'inherit' }}>Menu</Link>
             <Link to="/admin" style={{ textDecoration: 'none', color: 'var(--gold-soft)', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
               <KitchenIcon width={14} height={14} /> Admin Portal

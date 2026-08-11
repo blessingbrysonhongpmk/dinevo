@@ -11,6 +11,7 @@ import {
   ClockIcon
 } from '../components/Icons';
 import AdminQRDisplay from '../components/AdminQRDisplay';
+import { getQrTargetUrl } from '../utils/qrUrl';
 
 const STATUS_COLORS = {
   AVAILABLE: { bg: 'rgba(6,214,160,0.12)', color: '#048A65', dot: '#06D6A0' },
@@ -30,6 +31,7 @@ export default function AdminPanel({ embedded = false }) {
   const [loading, setLoading] = useState(true);
   const [servingInputs, setServingInputs] = useState({});
   const [errorMap, setErrorMap] = useState({});
+  const [salesData, setSalesData] = useState([]);
   const navigate = useNavigate();
 
   // QR Modal State
@@ -46,16 +48,22 @@ export default function AdminPanel({ embedded = false }) {
   const [showTableModal, setShowTableModal] = useState(false);
   const [newTableNum, setNewTableNum] = useState('');
 
+  // Merge Modal State
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  const [mergeForm, setMergeForm] = useState({ source: '', target: '' });
+
   const fetchData = async () => {
     try {
-      const [ordRes, tblRes, foodRes] = await Promise.all([
+      const [ordRes, tblRes, foodRes, analyticsRes] = await Promise.all([
         api.get('/orders/restaurant/all').catch(() => ({ data: [] })),
         api.get('/tables').catch(() => ({ data: [] })),
-        api.get('/foods').catch(() => ({ data: [] }))
+        api.get('/foods').catch(() => ({ data: [] })),
+        api.get('/orders/analytics').catch(() => ({ data: [] }))
       ]);
       setOrders(Array.isArray(ordRes.data) ? ordRes.data : []);
       setTables(Array.isArray(tblRes.data) ? tblRes.data : []);
       setFoods(Array.isArray(foodRes.data) ? foodRes.data : foodRes.data?.data || []);
+      setSalesData(Array.isArray(analyticsRes.data) ? analyticsRes.data : []);
     } catch (err) {
       console.error('Admin fetch error:', err);
     } finally {
@@ -142,6 +150,21 @@ export default function AdminPanel({ embedded = false }) {
     }
   };
 
+  const handleMergeTables = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/tables/merge', { 
+        sourceCode: mergeForm.source, 
+        targetCode: mergeForm.target 
+      });
+      setShowMergeModal(false);
+      setMergeForm({ source: '', target: '' });
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to merge tables');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('dinevo_token');
     localStorage.removeItem('dinevo_user');
@@ -192,6 +215,23 @@ export default function AdminPanel({ embedded = false }) {
         <div className="adm-stat-card" style={{ borderLeftColor: '#1A1721' }}>
           <div className="adm-stat-label">Today's Orders</div>
           <div className="adm-stat-value">{orders.length}</div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 32, padding: '24px', background: '#FFFFFF', borderRadius: '16px', border: '1px solid var(--line)' }}>
+        <h3 style={{ fontSize: '1.2rem', marginBottom: 20 }}>Revenue Analytics (Last 7 Days)</h3>
+        <div style={{ display: 'flex', alignItems: 'flex-end', height: 200, gap: 12, paddingBottom: 10, borderBottom: '1px solid var(--line)' }}>
+          {salesData.map((d, i) => {
+            const maxRev = Math.max(...salesData.map(s => s.revenue), 1);
+            const heightPct = (d.revenue / maxRev) * 100;
+            return (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--ink-soft)', fontWeight: 600 }}>₹{d.revenue}</div>
+                <div style={{ width: '100%', maxWidth: 40, height: `${heightPct}%`, background: 'var(--burgundy)', borderRadius: '4px 4px 0 0', opacity: 0.8 }} />
+                <div style={{ fontSize: '0.7rem', color: 'var(--ink-faint)', marginTop: 4 }}>{d.date}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -348,16 +388,21 @@ export default function AdminPanel({ embedded = false }) {
           <h2 style={{ fontSize: '1.4rem' }}>Table & QR Management</h2>
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)' }}>Live table statuses from MongoDB</p>
         </div>
-        <button className="btn-dv btn-primary" style={{ fontSize: '0.88rem' }} onClick={() => setShowTableModal(true)}>
-          <PlusIcon width={16} height={16} /> Add Table
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button className="btn-dv btn-outline" style={{ fontSize: '0.88rem' }} onClick={() => setShowMergeModal(true)}>
+             Merge Tables
+          </button>
+          <button className="btn-dv btn-primary" style={{ fontSize: '0.88rem' }} onClick={() => setShowTableModal(true)}>
+            <PlusIcon width={16} height={16} /> Add Table
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
         {tables.map((t, idx) => {
           const status = (t.status || 'AVAILABLE').toUpperCase();
-          const sc = STATUS_COLORS[status] || STATUS_COLORS.AVAILABLE;
-          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${window.location.origin}/table/${t.code}`;
+          const targetUrl = getQrTargetUrl(t.code);
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(targetUrl)}`;
 
           return (
             <div className="card-dv" key={idx} style={{ padding: '20px', textAlign: 'center' }}>
@@ -541,6 +586,29 @@ export default function AdminPanel({ embedded = false }) {
             <div style={{ display: 'flex', gap: 10, marginTop: 20, justifyContent: 'center' }}>
               <button type="button" className="btn-dv btn-outline" onClick={() => setShowTableModal(false)}>Cancel</button>
               <button type="submit" className="btn-dv btn-primary">Add Table</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {showMergeModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', padding: '20px' }}>
+          <form onSubmit={handleMergeTables} style={{ background: '#FFFFFF', borderRadius: '24px', padding: '28px', maxWidth: '400px', width: '100%' }}>
+            <h3 style={{ fontSize: '1.3rem', marginBottom: 14 }}>Merge Tables</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginBottom: 16 }}>Combine orders from Source Table into Target Table.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+               <div>
+                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Source Table (e.g. 02)</label>
+                 <input className="dv-input" placeholder="Table Number" value={mergeForm.source} onChange={(e) => setMergeForm({ ...mergeForm, source: e.target.value })} required />
+               </div>
+               <div>
+                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Target Table (e.g. 01)</label>
+                 <input className="dv-input" placeholder="Table Number" value={mergeForm.target} onChange={(e) => setMergeForm({ ...mergeForm, target: e.target.value })} required />
+               </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'flex-end' }}>
+              <button type="button" className="btn-dv btn-outline" onClick={() => setShowMergeModal(false)}>Cancel</button>
+              <button type="submit" className="btn-dv btn-primary">Merge Tables</button>
             </div>
           </form>
         </div>

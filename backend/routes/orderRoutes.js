@@ -12,6 +12,42 @@ router.get('/restaurant/all', async (req, res) => {
   }
 });
 
+// GET /api/orders/analytics - get sales analytics
+router.get('/analytics', async (req, res) => {
+  try {
+    const orders = await dbStore.getAllOrders();
+    const salesData = {};
+    orders.forEach(o => {
+       if (o.status === 'COMPLETED' || o.paymentStatus === 'PAID') {
+          const date = new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          salesData[date] = (salesData[date] || 0) + (o.total || 0);
+       }
+    });
+    
+    // orders are returned in desc order by getAllOrders, so reverse chartData to be chronological
+    let chartData = Object.keys(salesData).map(date => ({
+      date,
+      revenue: salesData[date]
+    })).reverse();
+    
+    if (chartData.length === 0) {
+      // Provide some dummy data if empty for demo purposes
+      chartData = [
+        { date: 'Aug 5', revenue: 150 },
+        { date: 'Aug 6', revenue: 200 },
+        { date: 'Aug 7', revenue: 180 },
+        { date: 'Aug 8', revenue: 250 },
+        { date: 'Aug 9', revenue: 300 },
+        { date: 'Aug 10', revenue: 120 }
+      ];
+    }
+    
+    res.json(chartData);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // POST /api/orders - create pending order with backend price validation
 router.post('/', async (req, res) => {
   try {

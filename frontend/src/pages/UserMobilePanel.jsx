@@ -21,6 +21,7 @@ export default function UserMobilePanel({ embedded = false }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState(false);
   const [booking, setBooking] = useState(null);
   const [bookingError, setBookingError] = useState('');
   const [currentOrder, setCurrentOrder] = useState(null);
@@ -29,14 +30,16 @@ export default function UserMobilePanel({ embedded = false }) {
   const [selectedFoodItem, setSelectedFoodItem] = useState(null);
   const [foodNotes, setFoodNotes] = useState('');
   const [spiceLevel, setSpiceLevel] = useState('Medium');
-  const { startSession } = useCart();
+  const { startSession, session } = useCart();
 
   const fetchTables = useCallback(async () => {
     try {
       const res = await api.get('/tables');
       setTables(res.data || []);
+      setConnectionError(false);
     } catch (err) {
       console.warn('Failed to fetch tables', err);
+      setConnectionError(true);
     } finally {
       setLoading(false);
     }
@@ -59,6 +62,22 @@ export default function UserMobilePanel({ embedded = false }) {
     const interval = setInterval(fetchTables, 3000);
     return () => clearInterval(interval);
   }, [fetchTables]);
+
+  // Bind active session from CartContext if present
+  useEffect(() => {
+    if (session?.verified && (!selectedTable || selectedTable.code !== session.tableCode)) {
+      setSelectedTable({
+        tableNumber: session.tableNumber,
+        code: session.tableCode,
+        status: 'OCCUPIED'
+      });
+      setSessionData(session);
+      if (session.restaurantId) {
+        fetchMenu(session.restaurantId);
+      }
+      setView((prev) => (prev === 'tables' ? 'confirmed' : prev));
+    }
+  }, [session, selectedTable, fetchMenu]);
 
   // Poll order status if active order exists
   useEffect(() => {
@@ -174,17 +193,33 @@ export default function UserMobilePanel({ embedded = false }) {
     </div>
   );
 
+  const handleNavMenuClick = () => {
+    if (!selectedTable) {
+      const defaultTbl = tables.find((t) => (t.status || '').toUpperCase() === 'AVAILABLE') || tables[0] || { tableNumber: '01', code: 'DINEVO-T01' };
+      setSelectedTable(defaultTbl);
+    }
+    setView('menu');
+  };
+
+  const handleNavCartClick = () => {
+    if (!selectedTable) {
+      const defaultTbl = tables.find((t) => (t.status || '').toUpperCase() === 'AVAILABLE') || tables[0] || { tableNumber: '01', code: 'DINEVO-T01' };
+      setSelectedTable(defaultTbl);
+    }
+    setView('cart');
+  };
+
   const renderBottomNav = () => (
     <div className="v40-bottom-nav">
       <button className={view === 'tables' ? 'active' : ''} onClick={() => setView('tables')}>
         <span className="v40-nav-icon">✨</span>
         <span>Tables</span>
       </button>
-      <button className={view === 'menu' || view === 'confirmed' ? 'active' : ''} onClick={() => selectedTable && setView('menu')} disabled={!selectedTable}>
+      <button className={view === 'menu' || view === 'confirmed' ? 'active' : ''} onClick={handleNavMenuClick}>
         <span className="v40-nav-icon">🍷</span>
         <span>Menu</span>
       </button>
-      <button className={view === 'cart' || view === 'bill' ? 'active' : ''} onClick={() => selectedTable && setView('cart')} disabled={!selectedTable}>
+      <button className={view === 'cart' || view === 'bill' ? 'active' : ''} onClick={handleNavCartClick}>
         <span className="v40-nav-icon">🛍️</span>
         <span>Cart{cartCount > 0 ? ` (${cartCount})` : ''}</span>
       </button>
@@ -207,6 +242,13 @@ export default function UserMobilePanel({ embedded = false }) {
       {bookingError && (
         <div className="v40-error-banner">
           <span>⚠️</span> {bookingError}
+        </div>
+      )}
+
+      {connectionError && !loading && (
+        <div className="v40-error-banner" style={{ background: 'rgba(255, 77, 77, 0.12)', border: '1px solid rgba(255, 77, 77, 0.4)', color: '#FF4D4D', padding: '16px', borderRadius: '12px', textAlign: 'center', marginBottom: '20px' }}>
+          <span>⚠️</span> <strong>CRITICAL CONNECTION ERROR</strong>
+          <p style={{ marginTop: '6px', fontSize: '0.85rem', color: '#FFF' }}>The application could not connect to the backend server or MongoDB database. Please ensure the backend is running.</p>
         </div>
       )}
 

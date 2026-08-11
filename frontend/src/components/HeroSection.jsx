@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { QrIcon } from './Icons';
+import { getQrTargetUrl } from '../utils/qrUrl';
 
 export default function HeroSection({ session }) {
   const [showQrModal, setShowQrModal] = useState(false);
@@ -12,8 +13,6 @@ export default function HeroSection({ session }) {
     const savedHost = localStorage.getItem('dinevo_public_url');
     if (savedHost) {
       setCustomHost(savedHost);
-    } else {
-      setCustomHost(window.location.origin);
     }
   }, []);
 
@@ -33,8 +32,7 @@ export default function HeroSection({ session }) {
     }
   };
 
-  const activeHost = (customHost || window.location.origin).replace(/\/$/, '');
-  const sampleQrUrl = `${activeHost}/table/DINEVO-T01`;
+  const sampleQrUrl = getQrTargetUrl('DINEVO-T01', customHost || null);
   const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(sampleQrUrl)}`;
 
   return (
@@ -120,11 +118,11 @@ export default function HeroSection({ session }) {
               </button>
 
               <Link
-                to="/demo"
+                to="/user"
                 className="btn-dv btn-outline"
                 style={{ padding: '14px 32px', fontSize: '1rem', fontWeight: 800, color: '#FAF6F0', borderColor: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.08)' }}
               >
-                OPEN USER PANEL (DEMO)
+                OPEN CUSTOMER USER PANEL
               </Link>
             </div>
 
@@ -155,8 +153,8 @@ export default function HeroSection({ session }) {
               <img src={qrImageSrc} alt="Table 01 QR" style={{ width: '160px', height: '160px', margin: '0 auto', display: 'block' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <Link to="/demo" className="btn-dv btn-gold btn-block" onClick={() => setShowQrModal(false)}>
-                Open User Panel Prototype
+              <Link to="/user" className="btn-dv btn-gold btn-block" onClick={() => setShowQrModal(false)}>
+                Open Customer User Panel
               </Link>
               <button className="btn-dv btn-outline btn-block" onClick={() => setShowQrModal(false)}>
                 Close

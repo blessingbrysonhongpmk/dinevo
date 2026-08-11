@@ -13,18 +13,16 @@ const foodRoutes = require('./routes/foodRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const tableRoutes = require('./routes/tableRoutes');
+const customerRoutes = require('./routes/customerRoutes');
 const notFoundMiddleware = require('./middleware/notFoundMiddleware');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 const app = express();
 
-connectDB();
-
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || '*' }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
-
   const mongooseConnected = mongoose.connection.readyState === 1;
   const isDbActive = mongooseConnected || dbStore.isDbConnected();
   res.json({
@@ -36,7 +34,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/sessions', sessionRoutes);
@@ -45,9 +42,21 @@ app.use('/api/foods', foodRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/tables', tableRoutes);
+app.use('/api/customers', customerRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`[dinevo] Server running on port ${PORT}`));
+
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(PORT, '0.0.0.0', () => console.log(`[dinevo] Server running on port ${PORT} (0.0.0.0)`));
+  } catch (err) {
+    console.error('[dinevo] Server failed to start due to database connection error.');
+    process.exit(1);
+  }
+};
+
+startServer();

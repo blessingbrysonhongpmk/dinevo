@@ -1,7 +1,9 @@
 import React, { useState, useRef } from 'react';
+import { getQrTargetUrl } from '../utils/qrUrl';
 
 export default function AdminQRDisplay({ table, onClose }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [customHost, setCustomHost] = useState('');
   const containerRef = useRef(null);
 
   if (!table) return null;
@@ -10,9 +12,9 @@ export default function AdminQRDisplay({ table, onClose }) {
   const tableNum = table.tableNumber || '01';
   const tableStatus = table.status || 'AVAILABLE';
 
-  // High-res QR code URL with proper quiet zone
-  const targetUrl = `${window.location.origin}/table/${tableCode}`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=15&data=${encodeURIComponent(targetUrl)}`;
+  // High-res QR code URL with proper quiet zone and LAN/Production detection
+  const targetUrl = getQrTargetUrl(tableCode, customHost);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=450x450&margin=15&data=${encodeURIComponent(targetUrl)}`;
 
   const handleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -164,6 +166,9 @@ export default function AdminQRDisplay({ table, onClose }) {
 
           <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '0.95rem', fontWeight: 800, color: 'var(--burgundy, #E63946)', marginTop: 14, letterSpacing: '0.08em' }}>
             {tableCode}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#666', marginTop: 6, wordBreak: 'break-all', fontFamily: 'monospace', background: '#FFF', padding: '6px 10px', borderRadius: '8px', border: '1px solid #DDD' }}>
+            🔗 {targetUrl}
           </div>
         </div>
 

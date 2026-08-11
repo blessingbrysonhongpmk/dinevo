@@ -14,6 +14,11 @@ export default function CheckoutPayment() {
   const [pendingOrder, setPendingOrder] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
+  // Loyalty Points State
+  const [phoneInput, setPhoneInput] = useState('');
+  const [customerData, setCustomerData] = useState(null);
+  const [loyaltyMessage, setLoyaltyMessage] = useState('');
+
   if (!session) return <Navigate to="/table" replace />;
   if (items.length === 0 && !showPaymentModal) return <Navigate to="/menu" replace />;
 
@@ -58,6 +63,11 @@ export default function CheckoutPayment() {
       });
 
       if (payRes.data.success || payRes.data.order) {
+        if (customerData) {
+          try {
+            await api.post('/customers/add-points', { phone: customerData.phoneNumber, pointsToAdd: Math.floor(pendingOrder.total) });
+          } catch(e) { console.error('Failed to add points', e) }
+        }
         clearCart();
         setShowPaymentModal(false);
         navigate(`/order/${pendingOrder._id}/confirmation`);
@@ -66,6 +76,21 @@ export default function CheckoutPayment() {
       }
     } catch (err) {
       throw new Error(err.response?.data?.message || 'Backend payment verification failed');
+    }
+  };
+
+  const handleCheckLoyalty = async () => {
+    if (!phoneInput || phoneInput.length < 10) {
+      setLoyaltyMessage('Please enter a valid phone number');
+      return;
+    }
+    setLoyaltyMessage('Looking up...');
+    try {
+      const res = await api.post('/customers/lookup', { phone: phoneInput });
+      setCustomerData(res.data);
+      setLoyaltyMessage(`Found account! You have ${res.data.loyaltyPoints} points.`);
+    } catch (err) {
+      setLoyaltyMessage('Error looking up account.');
     }
   };
 
@@ -186,6 +211,26 @@ export default function CheckoutPayment() {
               {error}
             </div>
           )}
+
+          <div style={{ borderTop: '1px dashed var(--line)', marginTop: 24, paddingTop: 20 }}>
+            <h4 style={{ fontSize: '1rem', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <ShieldCheckIcon width={16} height={16} /> Dinevo Loyalty
+            </h4>
+            <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
+              Enter your phone number to earn points for this order. (1 Point per ₹1)
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input 
+                className="dv-input" 
+                placeholder="Phone Number" 
+                value={phoneInput} 
+                onChange={(e) => setPhoneInput(e.target.value)} 
+                style={{ flex: 1 }} 
+              />
+              <button className="btn-dv btn-outline" onClick={handleCheckLoyalty}>Check</button>
+            </div>
+            {loyaltyMessage && <div style={{ fontSize: '0.8rem', marginTop: 8, color: 'var(--gold)', fontWeight: 600 }}>{loyaltyMessage}</div>}
+          </div>
 
           <button
             className="btn-dv btn-burgundy btn-block"

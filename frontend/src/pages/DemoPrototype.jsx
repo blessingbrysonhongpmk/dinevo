@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useNavigate } from 'react';
 import PhoneFrame from '../components/PhoneFrame';
 import UserMobilePanel from './UserMobilePanel';
 import AdminPanel from './AdminPanel';
 
 export default function DemoPrototype() {
+  const navigate = useNavigate();
   return (
     <div className="dv-demo-wrap">
       {/* LEFT: Admin Desktop */}
@@ -16,10 +17,22 @@ export default function DemoPrototype() {
         <div className="dv-demo-mobile-label">Customer Mobile Preview</div>
 
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-          <PhoneFrame>
-            <UserMobilePanel embedded />
-          </PhoneFrame>
-
+// Add admin navigation button (visible on desktop only)
+          <button
+            className="admin-nav-btn"
+            onClick={() => navigate('/admin')}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: '#E63946',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'none', // will be overridden by CSS media query
+            }}
+          >
+            Admin Panel
+          </button>
           {/* Diagram Callouts (as in model image) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: '180px' }}>
             <div

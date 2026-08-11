@@ -585,10 +585,39 @@ const dbStore = {
       const rest = memoryDb.restaurants[0];
       const tbl = rest.tables ? rest.tables.find((t) => t.code && t.code.trim().toUpperCase() === cleanCode) : null;
       if (!tbl) return { success: false, message: 'Table not found' };
-      tbl.status = 'AVAILABLE';
-      tbl.activeSession = null;
-      return { success: true, table: tbl };
     }
+    return { success: false, message: 'No restaurant found' };
+  },
+
+  async mergeTables(sourceCode, targetCode) {
+    const cleanSource = (sourceCode || '').trim().toUpperCase();
+    const cleanTarget = (targetCode || '').trim().toUpperCase();
+
+    if (isConnected) {
+       const rest = await RestaurantModel.findOne();
+       if (!rest) return { success: false, message: 'Restaurant not found' };
+       const sourceTbl = rest.tables.find(t => t.code.toUpperCase() === cleanSource || t.tableNumber === cleanSource);
+       const targetTbl = rest.tables.find(t => t.code.toUpperCase() === cleanTarget || t.tableNumber === cleanTarget);
+       
+       if (!sourceTbl || !targetTbl) return { success: false, message: 'Table not found' };
+       
+       sourceTbl.status = targetTbl.status;
+       sourceTbl.activeSession = targetTbl.activeSession;
+       await rest.save();
+       return { success: true, message: 'Tables merged successfully' };
+    }
+    
+    if (memoryDb.restaurants.length > 0) {
+       const rest = memoryDb.restaurants[0];
+       const sourceTbl = rest.tables.find(t => t.code.toUpperCase() === cleanSource || t.tableNumber === cleanSource);
+       const targetTbl = rest.tables.find(t => t.code.toUpperCase() === cleanTarget || t.tableNumber === cleanTarget);
+       if (!sourceTbl || !targetTbl) return { success: false, message: 'Table not found' };
+       
+       sourceTbl.status = targetTbl.status;
+       sourceTbl.activeSession = targetTbl.activeSession;
+       return { success: true, message: 'Tables merged successfully' };
+    }
+    
     return { success: false, message: 'No restaurant found' };
   },
 
