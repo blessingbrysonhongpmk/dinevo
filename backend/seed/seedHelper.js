@@ -1,11 +1,11 @@
 const dbStore = require('../config/dbStore');
 
 const defaultRestaurant = {
-  name: 'DINEVO Kitchen & Bar',
-  tagline: 'Crafted Gourmet Plates & Table QR Ordering',
+  name: 'DINEVO 5-Star Luxury Resort & Bar',
+  tagline: 'Gourmet World Cuisine, Arabian Mandhi & Live Table QR POS',
   coverImage: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1600&auto=format&fit=crop',
-  address: '12 Marina Walk, City Center',
-  openingHours: '11:00 AM - 11:30 PM',
+  address: '12 Marina Promenade, Five-Star Luxury Zone',
+  openingHours: '24 Hours Open',
   tables: [
     { tableNumber: '01', code: 'DINEVO-T01', status: 'AVAILABLE', activeSession: null },
     { tableNumber: '02', code: 'DINEVO-T02', status: 'AVAILABLE', activeSession: null },
@@ -19,13 +19,250 @@ const defaultRestaurant = {
 };
 
 const defaultItems = [
-  // SIGNATURE
+  // 1. ARABIAN MANDHI & BIRYANI
+  {
+    name: 'Royal Chicken Alfaham Kuzhi Mandhi',
+    description: 'Authentic Yemeni slow-cooked basmati Mandhi rice served with charcoal-grilled Alfaham chicken, garlic toum, spicy tomato salsa & fresh salad.',
+    price: 520,
+    image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=1200&auto=format&fit=crop',
+    category: 'Arabian Mandhi',
+    veg: false,
+    spiceLevel: 2,
+    rating: 4.98,
+    isPopular: true,
+    isSignature: true,
+    isAvailable: true,
+    ingredients: ['Mandhi Basmati Rice', 'Alfaham Chicken', 'Garlic Toum', 'Mandhi Salsa', 'Fried Nuts'],
+    addOns: [{ name: 'Extra Garlic Dip', price: 30 }, { name: 'Extra Mandhi Rice', price: 90 }]
+  },
+  {
+    name: 'Mutton Juicy Mandhi Supreme',
+    description: 'Melt-in-the-mouth mutton shank cooked in underground pit steam over fragrant long-grain Mandhi rice with roasted cashew & raisins.',
+    price: 640,
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1200&auto=format&fit=crop',
+    category: 'Arabian Mandhi',
+    veg: false,
+    spiceLevel: 2,
+    rating: 4.96,
+    isPopular: true,
+    isSignature: true,
+    isAvailable: true,
+    ingredients: ['Tender Mutton Shank', 'Basmati Mandhi Rice', 'Garlic Sauce', 'Salsa'],
+    addOns: [{ name: 'Extra Mutton Piece', price: 220 }]
+  },
+  {
+    name: 'Peri Peri BBQ Alfaham Mandhi',
+    description: 'Spicy African Peri Peri spiced quarter chicken grilled over charcoal, served atop aromatic butter Mandhi rice.',
+    price: 540,
+    image: 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=1200&auto=format&fit=crop',
+    category: 'Arabian Mandhi',
+    veg: false,
+    spiceLevel: 3,
+    rating: 4.91,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Peri Peri Chicken', 'Mandhi Rice', 'Spicy Dip'],
+    addOns: [{ name: 'Cheese Slice', price: 40 }]
+  },
+  {
+    name: 'Hyderabadi Dum Chicken Biryani',
+    description: 'Long-grain basmati rice cooked on slow dum with saffron, mint, whole spices & succulent chicken pieces.',
+    price: 480,
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=1200&auto=format&fit=crop',
+    category: 'Arabian Mandhi',
+    veg: false,
+    spiceLevel: 2,
+    rating: 4.9,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Basmati Rice', 'Chicken', 'Saffron', 'Mint', 'Ghee', 'Raita'],
+    addOns: [{ name: 'Mirchi Ka Salan', price: 40 }, { name: 'Boiled Egg', price: 20 }]
+  },
+
+  // 2. JUICES & COOLERS
+  {
+    name: 'Electric Blue Lagoon Mocktail',
+    description: 'Refreshing curaçao blue cooler with sparkling soda, fresh Key lime juice, crushed ice & garden mint.',
+    price: 160,
+    image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=1200&auto=format&fit=crop',
+    category: 'Juices & Coolers',
+    veg: true,
+    spiceLevel: 0,
+    rating: 4.88,
+    isPopular: true,
+    isJuice: true,
+    isAvailable: true,
+    ingredients: ['Blue Curaçao Syrup', 'Sparkling Soda', 'Lime Juice', 'Mint'],
+    addOns: []
+  },
+  {
+    name: 'Fresh Alphonso Mango Lassi',
+    description: 'Thick, creamy yogurt lassi blended with rich Alphonso mango pulp & garnished with pistachio flakes.',
+    price: 140,
+    image: 'https://images.unsplash.com/photo-1546173159-315724a31696?q=80&w=1200&auto=format&fit=crop',
+    category: 'Juices & Coolers',
+    veg: true,
+    spiceLevel: 0,
+    rating: 4.92,
+    isPopular: true,
+    isJuice: true,
+    isAvailable: true,
+    ingredients: ['Alphonso Mango', 'Thick Yogurt', 'Cardamom', 'Pistachios'],
+    addOns: [{ name: 'Scoop Vanilla Gelato', price: 40 }]
+  },
+  {
+    name: 'Cold-Pressed Red Watermelon Juice',
+    description: '100% natural pure chilled watermelon juice with lemon splash & crushed mint leaves.',
+    price: 140,
+    image: 'https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?q=80&w=1200&auto=format&fit=crop',
+    category: 'Juices & Coolers',
+    veg: true,
+    spiceLevel: 0,
+    rating: 4.85,
+    isJuice: true,
+    isAvailable: true,
+    ingredients: ['Red Watermelon', 'Mint', 'Lemon'],
+    addOns: []
+  },
+  {
+    name: 'Creamy Hass Avocado Milkshake',
+    description: 'Rich velvety smoothie blended with fresh Mexican Hass avocados, honey & chilled full-cream milk.',
+    price: 180,
+    image: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?q=80&w=1200&auto=format&fit=crop',
+    category: 'Juices & Coolers',
+    veg: true,
+    spiceLevel: 0,
+    rating: 4.94,
+    isPopular: true,
+    isJuice: true,
+    isAvailable: true,
+    ingredients: ['Hass Avocado', 'Pure Honey', 'Chilled Milk'],
+    addOns: []
+  },
+  {
+    name: 'Signature Cold Coffee with Vanilla Gelato',
+    description: 'Double shot dark espresso blended with cream, chocolate drizzle & topped with a scoop of vanilla gelato.',
+    price: 170,
+    image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=1200&auto=format&fit=crop',
+    category: 'Juices & Coolers',
+    veg: true,
+    spiceLevel: 0,
+    rating: 4.89,
+    isPopular: true,
+    isJuice: true,
+    isAvailable: true,
+    ingredients: ['Espresso', 'Full Cream Milk', 'Chocolate Sauce', 'Vanilla Ice Cream'],
+    addOns: [{ name: 'Extra Espresso Shot', price: 30 }]
+  },
+
+  // 3. SNACKS & FINGER FOODS
+  {
+    name: 'Crispy Peri Peri French Fries',
+    description: 'Thick cut potato fries tossed hot with spicy African Peri Peri seasoning & served with garlic aioli.',
+    price: 190,
+    image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=1200&auto=format&fit=crop',
+    category: 'Snacks & Finger Foods',
+    veg: true,
+    spiceLevel: 2,
+    rating: 4.8,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Potato Fries', 'Peri Peri Spice', 'Garlic Aioli'],
+    addOns: [{ name: 'Melted Cheese Dip', price: 45 }]
+  },
+  {
+    name: 'Loaded Cheesy Nachos Supreme',
+    description: 'Crispy tortilla chips smothered in warm cheese sauce, jalapenos, salsa, sour cream & guacamole.',
+    price: 240,
+    image: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?q=80&w=1200&auto=format&fit=crop',
+    category: 'Snacks & Finger Foods',
+    veg: true,
+    spiceLevel: 1,
+    rating: 4.85,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Tortilla Chips', 'Cheese Sauce', 'Jalapenos', 'Pico de Gallo', 'Guacamole'],
+    addOns: [{ name: 'Add Shredded Chicken', price: 60 }]
+  },
+  {
+    name: 'Golden Fried Mozzarella Cheese Balls',
+    description: 'Golden panko crusted gooey mozzarella balls served piping hot with fiery marinara dip.',
+    price: 220,
+    image: 'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?q=80&w=1200&auto=format&fit=crop',
+    category: 'Snacks & Finger Foods',
+    veg: true,
+    spiceLevel: 1,
+    rating: 4.88,
+    isAvailable: true,
+    ingredients: ['Mozzarella Cheese', 'Panko Breadcrumbs', 'Fiery Marinara Dip'],
+    addOns: []
+  },
+
+  // 4. STARTERS & TANDOORI
+  {
+    name: 'Firecracker Naga BBQ Wings',
+    description: 'Crispy fried chicken wings coated in hot ghost pepper & honey garlic glaze.',
+    price: 390,
+    image: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?q=80&w=1200&auto=format&fit=crop',
+    category: 'Starters & Tandoori',
+    veg: false,
+    spiceLevel: 4,
+    rating: 4.91,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Chicken Wings', 'Naga Chilli Glaze', 'Honey', 'Garlic'],
+    addOns: [{ name: 'Cooling Ranch Dip', price: 30 }]
+  },
+  {
+    name: 'Smoky Tandoori Full Chicken',
+    description: 'Whole chicken marinated overnight in Kashmiri chilli, hung curd & aromatic tandoori masala, charred in clay oven.',
+    price: 480,
+    image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?q=80&w=1200&auto=format&fit=crop',
+    category: 'Starters & Tandoori',
+    veg: false,
+    spiceLevel: 3,
+    rating: 4.95,
+    isPopular: true,
+    isSignature: true,
+    isAvailable: true,
+    ingredients: ['Full Chicken', 'Hung Curd', 'Kashmiri Chilli', 'Mint Chutney'],
+    addOns: [{ name: 'Butter Naan', price: 40 }]
+  },
+  {
+    name: 'Paneer Tikka Malai Kebab',
+    description: 'Soft cottage cheese cubes marinated in rich cashew cream, green cardamom & roasted in tandoor.',
+    price: 320,
+    image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?q=80&w=1200&auto=format&fit=crop',
+    category: 'Starters & Tandoori',
+    veg: true,
+    spiceLevel: 1,
+    rating: 4.87,
+    isAvailable: true,
+    ingredients: ['Cottage Cheese', 'Cashew Paste', 'Malai Cream', 'Mint Dip'],
+    addOns: []
+  },
+  {
+    name: 'Sesame Honey Dragon Chicken',
+    description: 'Crispy chicken strips tossed in spicy red dragon sauce, bell peppers & toasted sesame seeds.',
+    price: 340,
+    image: 'https://images.unsplash.com/photo-1525755662778-989d0524087e?q=80&w=1200&auto=format&fit=crop',
+    category: 'Starters & Tandoori',
+    veg: false,
+    spiceLevel: 3,
+    rating: 4.86,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Chicken Strips', 'Dragon Chilli Sauce', 'Sesame Seeds'],
+    addOns: []
+  },
+
+  // 5. BURGERS & WRAPS
   {
     name: 'Truffle Wagyu Smash Burger',
     description: 'Double Wagyu beef patty, black truffle aioli, aged English cheddar, crispy shallots on toasted brioche.',
     price: 490,
     image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1200&auto=format&fit=crop',
-    category: 'Signature',
+    category: 'Burgers & Wraps',
     veg: false,
     spiceLevel: 1,
     rating: 4.98,
@@ -36,37 +273,34 @@ const defaultItems = [
     addOns: [{ name: 'Extra Truffle Dip', price: 50 }, { name: 'Crispy Bacon', price: 80 }]
   },
   {
-    name: 'Royal Charcoal Grilled Atlantic Salmon',
-    description: 'Fresh Atlantic salmon steak, saffron potato velvet, charred asparagus & herb citrus butter.',
-    price: 690,
-    image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?q=80&w=1200&auto=format&fit=crop',
-    category: 'Signature',
+    name: 'Smokey BBQ Chicken Zinger Burger',
+    description: 'Giant crispy fried chicken fillet, double cheddar, applewood smoked BBQ glaze & dill pickles.',
+    price: 320,
+    image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?q=80&w=1200&auto=format&fit=crop',
+    category: 'Burgers & Wraps',
     veg: false,
-    spiceLevel: 1,
-    rating: 4.95,
+    spiceLevel: 2,
+    rating: 4.88,
     isPopular: true,
-    isSignature: true,
     isAvailable: true,
-    ingredients: ['Atlantic Salmon', 'Saffron Potato Velvet', 'Asparagus', 'Citrus Butter'],
-    addOns: [{ name: 'Extra Lemon Herb Butter', price: 35 }]
+    ingredients: ['Crispy Chicken Fillet', 'Smokey BBQ Sauce', 'Cheddar Cheese', 'Pickles'],
+    addOns: [{ name: 'French Fries Side', price: 60 }]
   },
   {
-    name: 'Royal Mutton Sukka Roast',
-    description: 'Tender tenderloin mutton slow-roasted in toasted coconut, black pepper, star anise and curry leaf ghee.',
-    price: 520,
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1200&auto=format&fit=crop',
-    category: 'Signature',
-    veg: false,
-    spiceLevel: 3,
-    rating: 4.92,
-    isPopular: true,
-    isSignature: true,
+    name: 'Double Cheese Veggie Smash Burger',
+    description: 'Plant-based smash patty, double sharp cheddar, caramelised onions & secret burger sauce.',
+    price: 249,
+    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1200&auto=format&fit=crop',
+    category: 'Burgers & Wraps',
+    veg: true,
+    spiceLevel: 1,
+    rating: 4.75,
     isAvailable: true,
-    ingredients: ['Tender Mutton', 'Roasted Coconut', 'Crushed Black Pepper', 'Curry Leaf Ghee'],
-    addOns: [{ name: 'Malabar Parotta (2 pcs)', price: 60 }]
+    ingredients: ['Plant Patty', 'Cheddar Cheese', 'Caramelised Onions'],
+    addOns: [{ name: 'Extra Cheese Slice', price: 35 }]
   },
 
-  // KANYAKUMARI SPECIALS
+  // 6. KANYAKUMARI SPECIALS
   {
     name: 'Nanjil-style Fish Curry Rice',
     description: 'Authentic Kanyakumari coastal curry cooked with fresh kingfish, ground coconut, tamarind & roasted coconut oil, served with steamed matta rice.',
@@ -77,10 +311,9 @@ const defaultItems = [
     spiceLevel: 3,
     rating: 4.95,
     isPopular: true,
-    isKanyakumariSpecial: true,
     isAvailable: true,
     ingredients: ['Kingfish', 'Ground Coconut', 'Tamarind', 'Coconut Oil', 'Matta Rice'],
-    addOns: [{ name: 'Extra Fish Fry Piece', price: 90 }, { name: 'Coconut Gravy', price: 40 }]
+    addOns: [{ name: 'Extra Fish Fry Piece', price: 90 }]
   },
   {
     name: 'Kanyakumari Crispy Fish Fry',
@@ -91,11 +324,9 @@ const defaultItems = [
     veg: false,
     spiceLevel: 3,
     rating: 4.9,
-    isPopular: true,
-    isKanyakumariSpecial: true,
     isAvailable: true,
     ingredients: ['Fresh Fish Cutlet', 'Nanjil Chilli Paste', 'Garlic', 'Fennel', 'Coconut Oil'],
-    addOns: [{ name: 'Spicy Green Dip', price: 20 }]
+    addOns: []
   },
   {
     name: 'Nadan Pepper Chicken Fry',
@@ -106,186 +337,21 @@ const defaultItems = [
     veg: false,
     spiceLevel: 3,
     rating: 4.85,
-    isPopular: true,
-    isKanyakumariSpecial: true,
     isAvailable: true,
-    ingredients: ['Chicken', 'Crushed Pepper', 'Shallots', 'Curry Leaves', 'Ghee'],
-    addOns: [{ name: 'Extra Malabar Parotta (2 pcs)', price: 50 }]
-  },
-  {
-    name: 'Flaky Parotta & Spicy Chicken Curry',
-    description: 'Two layered flaky Malabar parottas served with rich slow-cooked Nanjil chicken gravy.',
-    price: 290,
-    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?q=80&w=1200&auto=format&fit=crop',
-    category: 'Kanyakumari Specials',
-    veg: false,
-    spiceLevel: 2,
-    rating: 4.9,
-    isKanyakumariSpecial: true,
-    isAvailable: true,
-    ingredients: ['Layered Parotta', 'Chicken Curry', 'Coconut Milk'],
-    addOns: [{ name: 'Extra Parotta', price: 25 }]
-  },
-  {
-    name: 'Coastal Special Prawn Roast',
-    description: 'Juicy coastal prawns pan-roasted with spicy Nanjil masala, shallots & fresh curry leaves.',
-    price: 450,
-    image: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?q=80&w=1200&auto=format&fit=crop',
-    category: 'Kanyakumari Specials',
-    veg: false,
-    spiceLevel: 3,
-    rating: 4.88,
-    isKanyakumariSpecial: true,
-    isAvailable: true,
-    ingredients: ['Jumbo Prawns', 'Nanjil Spice Blend', 'Coconut Slices', 'Curry Leaves'],
-    addOns: [{ name: 'Extra Coconut Paste', price: 35 }]
+    ingredients: ['Chicken', 'Crushed Pepper', 'Shallots', 'Curry Leaves'],
+    addOns: [{ name: 'Malabar Parotta (2 pcs)', price: 50 }]
   },
 
-  // BURGERS
-  {
-    name: 'Smokey BBQ Beef-Style Burger',
-    description: 'Charbroiled juicy patty, crispy onion rings, Applewood smoked BBQ glaze & melted Swiss cheese.',
-    price: 320,
-    image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?q=80&w=1200&auto=format&fit=crop',
-    category: 'Burgers',
-    veg: false,
-    spiceLevel: 1,
-    rating: 4.7,
-    isPopular: true,
-    isAvailable: true,
-    ingredients: ['Juicy Patty', 'Onion Rings', 'Swiss Cheese', 'BBQ Sauce'],
-    addOns: [{ name: 'Extra Patty', price: 90 }]
-  },
-  {
-    name: 'Double Cheese Veggie Smash Burger',
-    description: 'Plant-based smash patty, double sharp cheddar, caramelised onions & secret burger sauce.',
-    price: 249,
-    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1200&auto=format&fit=crop',
-    category: 'Burgers',
-    veg: true,
-    spiceLevel: 1,
-    rating: 4.6,
-    isAvailable: true,
-    ingredients: ['Plant Patty', 'Cheddar Cheese', 'Caramelised Onions'],
-    addOns: [{ name: 'Extra Cheese Slice', price: 35 }]
-  },
-
-  // CHICKEN
-  {
-    name: 'Peri Peri Crispy Chicken Tenders',
-    description: 'Golden buttermilk fried chicken tenders dusted with African Peri Peri spice blend & ranch dip.',
-    price: 310,
-    image: 'https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=1200&auto=format&fit=crop',
-    category: 'Chicken',
-    veg: false,
-    spiceLevel: 3,
-    rating: 4.8,
-    isPopular: true,
-    isAvailable: true,
-    ingredients: ['Chicken Tenders', 'Buttermilk', 'Peri Peri Spice', 'Ranch Sauce'],
-    addOns: [{ name: 'Extra Peri Peri Dip', price: 25 }]
-  },
-  {
-    name: 'Firecracker Naga Reaper Wings',
-    description: 'Extreme heat wings coated in authentic ghost pepper and Naga chilli reduction.',
-    price: 390,
-    image: 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?q=80&w=1200&auto=format&fit=crop',
-    category: 'Chicken',
-    veg: false,
-    spiceLevel: 4,
-    rating: 4.75,
-    isPopular: true,
-    isAvailable: true,
-    ingredients: ['Wings', 'Naga Chilli', 'Ghost Pepper', 'Lime Juice'],
-    addOns: [{ name: 'Cooling Sour Cream Dip', price: 30 }]
-  },
-
-  // RICE & MEALS
-  {
-    name: 'Hyderabadi Dum Chicken Biryani',
-    description: 'Long-grain basmati rice cooked on slow dum with saffron, mint, whole spices & succulent chicken.',
-    price: 480,
-    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=1200&auto=format&fit=crop',
-    category: 'Meals',
-    veg: false,
-    spiceLevel: 2,
-    rating: 4.9,
-    isPopular: true,
-    isAvailable: true,
-    ingredients: ['Basmati Rice', 'Chicken', 'Saffron', 'Mint', 'Ghee', 'Raita'],
-    addOns: [{ name: 'Extra Mirchi Ka Salan', price: 40 }, { name: 'Raita Dip', price: 25 }]
-  },
-  {
-    name: 'Royal Malabar Mutton Biryani',
-    description: 'Kaima rice biryani dum-cooked with tender mutton pieces, cashew nuts, raisins & fragrant ghee.',
-    price: 540,
-    image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=1200&auto=format&fit=crop',
-    category: 'Meals',
-    veg: false,
-    spiceLevel: 2,
-    rating: 4.95,
-    isPopular: true,
-    isAvailable: true,
-    ingredients: ['Kaima Rice', 'Tender Mutton', 'Ghee', 'Cashew & Raisins'],
-    addOns: [{ name: 'Extra Date Pickle', price: 20 }]
-  },
-
-  // JUICES & COOLERS
-  {
-    name: 'Fresh Lime Soda',
-    description: 'Chilled sparkling soda infused with freshly squeezed Key lime, garden mint & Himalayan pink rock salt.',
-    price: 110,
-    image: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=1200&auto=format&fit=crop',
-    category: 'Juices',
-    veg: true,
-    spiceLevel: 0,
-    rating: 4.8,
-    isJuice: true,
-    isAvailable: true,
-    ingredients: ['Fresh Lime', 'Sparkling Soda', 'Mint', 'Himalayan Salt'],
-    addOns: []
-  },
-  {
-    name: 'Cold-Pressed Watermelon Juice',
-    description: '100% pure cold-pressed red watermelon juice with crushed garden mint and lemon splash.',
-    price: 140,
-    image: 'https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?q=80&w=1200&auto=format&fit=crop',
-    category: 'Juices',
-    veg: true,
-    spiceLevel: 0,
-    rating: 4.85,
-    isPopular: true,
-    isJuice: true,
-    isAvailable: true,
-    ingredients: ['Fresh Watermelon', 'Garden Mint', 'Lemon Juice'],
-    addOns: []
-  },
-  {
-    name: 'Fresh Alphonso Mango Juice',
-    description: 'Thick, velvety sweet mango pulp blended fresh with chilled milk or ice.',
-    price: 160,
-    image: 'https://images.unsplash.com/photo-1546173159-315724a31696?q=80&w=1200&auto=format&fit=crop',
-    category: 'Juices',
-    veg: true,
-    spiceLevel: 0,
-    rating: 4.9,
-    isPopular: true,
-    isJuice: true,
-    isAvailable: true,
-    ingredients: ['Alphonso Mango', 'Chilled Milk', 'Pistachio Flakes'],
-    addOns: [{ name: 'Vanilla Gelato Scoop', price: 40 }]
-  },
-
-  // DESSERTS
+  // 7. 5-STAR DESSERTS
   {
     name: 'Belgian Dark Chocolate Lava Cake',
     description: 'Warm dark chocolate sponge cake with molten Belgian cocoa centre, served with Madagascar vanilla ice cream.',
     price: 320,
     image: 'https://images.unsplash.com/photo-1624353365286-3f8d62daad51?q=80&w=1200&auto=format&fit=crop',
-    category: 'Desserts',
+    category: '5-Star Desserts',
     veg: true,
     spiceLevel: 0,
-    rating: 4.95,
+    rating: 4.96,
     isPopular: true,
     isDessert: true,
     isAvailable: true,
@@ -293,19 +359,62 @@ const defaultItems = [
     addOns: [{ name: 'Extra Vanilla Scoop', price: 50 }]
   },
   {
-    name: 'Classic New York Cheesecake',
-    description: 'Silky smooth baked cream cheese over a buttery graham cracker crust, topped with wild berry compote.',
-    price: 340,
-    image: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?q=80&w=1200&auto=format&fit=crop',
-    category: 'Desserts',
+    name: 'Royal Falooda Supreme',
+    description: 'Layered dessert with rose syrup, basil seeds, vermicelli, rich rabri, dry fruit nuts & double scoop ice cream.',
+    price: 240,
+    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=1200&auto=format&fit=crop',
+    category: '5-Star Desserts',
     veg: true,
     spiceLevel: 0,
-    rating: 4.92,
+    rating: 4.93,
     isPopular: true,
     isDessert: true,
     isAvailable: true,
-    ingredients: ['Cream Cheese', 'Graham Crust', 'Wild Berry Compote'],
-    addOns: [{ name: 'Extra Berry Compote', price: 40 }]
+    ingredients: ['Rose Syrup', 'Basil Seeds', 'Rabri', 'Nuts', 'Kesar Ice Cream'],
+    addOns: []
+  },
+  {
+    name: 'Sizzling Walnut Brownie with Gelato',
+    description: 'Hot walnut chocolate brownie served sizzling on cast iron plate with dark chocolate ganache & vanilla bean gelato.',
+    price: 280,
+    image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?q=80&w=1200&auto=format&fit=crop',
+    category: '5-Star Desserts',
+    veg: true,
+    spiceLevel: 0,
+    rating: 4.9,
+    isDessert: true,
+    isAvailable: true,
+    ingredients: ['Walnut Brownie', 'Chocolate Fudge', 'Vanilla Gelato'],
+    addOns: []
+  },
+
+  // 8. SOUPS & BEVERAGES
+  {
+    name: 'Sweet Corn Chicken Soup',
+    description: 'Rich oriental chicken broth with sweet kernel corn, egg drops & white pepper.',
+    price: 180,
+    image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=1200&auto=format&fit=crop',
+    category: 'Soups & Beverages',
+    veg: false,
+    spiceLevel: 1,
+    rating: 4.82,
+    isAvailable: true,
+    ingredients: ['Chicken Stock', 'Sweet Corn', 'Egg Ribbon'],
+    addOns: []
+  },
+  {
+    name: 'Royal South Indian Filter Coffee',
+    description: 'Authentic brass tumbler brass cup filter coffee brewed fresh with peaberry chicory blend & frothy hot milk.',
+    price: 80,
+    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1200&auto=format&fit=crop',
+    category: 'Soups & Beverages',
+    veg: true,
+    spiceLevel: 0,
+    rating: 4.95,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Peaberry Decoction', 'Frothy Milk', 'Jaggery/Sugar'],
+    addOns: []
   }
 ];
 
@@ -314,7 +423,7 @@ async function seedData(forceReset = false) {
   if (existing > 0 && !forceReset) {
     const rest = (await dbStore.getRestaurants())[0];
     if (rest) {
-      // Re-seed items to ensure all rich foods are present
+      // Clear old menu and insert full 5-star menu
       await dbStore.insertMenuItems(defaultItems.map((i) => ({ ...i, restaurant: rest._id })));
     }
     return;
@@ -327,7 +436,7 @@ async function seedData(forceReset = false) {
   const restaurant = await dbStore.createRestaurant(defaultRestaurant);
   await dbStore.insertMenuItems(defaultItems.map((i) => ({ ...i, restaurant: restaurant._id })));
 
-  console.log('[dinevo] Seeded default restaurant & enriched menu items.');
+  console.log('[dinevo] Seeded 5-Star Luxury resort & enriched food menu items.');
   console.log(`[dinevo] Restaurant ID: ${restaurant._id}`);
 }
 

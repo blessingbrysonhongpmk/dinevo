@@ -53,7 +53,7 @@ export default function AdminPanel({ embedded = false }) {
   const [showFoodModal, setShowFoodModal] = useState(false);
   const [editingFood, setEditingFood] = useState(null);
   const [foodForm, setFoodForm] = useState({
-    name: '', category: 'Signature', price: '', description: '', image: '', veg: true, spiceLevel: 0, isAvailable: true
+    name: '', category: 'Arabian Mandhi', price: '', description: '', image: '', veg: true, spiceLevel: 0, isAvailable: true
   });
 
   // Table Modal State
@@ -146,7 +146,7 @@ export default function AdminPanel({ embedded = false }) {
     setEditingFood(food);
     setFoodForm({
       name: food.name || '',
-      category: food.category || 'Signature',
+      category: food.category || 'Arabian Mandhi',
       price: food.price || '',
       description: food.description || '',
       image: food.image || '',
@@ -241,7 +241,20 @@ export default function AdminPanel({ embedded = false }) {
     { id: 'orders', icon: '📋', label: `Live Orders (${orders.length})` },
     { id: 'kitchen', icon: '🍳', label: `Kitchen Queue (${activeOrders.length})` },
     { id: 'tables', icon: '🪑', label: `Tables & QRs (${tables.length})` },
-    { id: 'menu', icon: '🍔', label: `Menu Items (${foods.length})` }
+    { id: 'menu', icon: '🍔', label: `5-Star Menu (${foods.length})` },
+    { id: 'settings', icon: '⚙️', label: 'POS & Store Settings' }
+  ];
+
+  const menuCategoriesList = [
+    'All',
+    'Arabian Mandhi',
+    'Juices & Coolers',
+    'Snacks & Finger Foods',
+    'Starters & Tandoori',
+    'Burgers & Wraps',
+    'Kanyakumari Specials',
+    '5-Star Desserts',
+    'Soups & Beverages'
   ];
 
   // Filtering Logic for Orders
@@ -660,7 +673,7 @@ export default function AdminPanel({ embedded = false }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Digital Menu Manager</h2>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>5-Star Digital Menu Manager</h2>
           <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)' }}>Add dishes, edit pricing, toggle availability live</p>
         </div>
         <button
@@ -668,7 +681,7 @@ export default function AdminPanel({ embedded = false }) {
           style={{ fontSize: '0.88rem' }}
           onClick={() => {
             setEditingFood(null);
-            setFoodForm({ name: '', category: 'Signature', price: '', description: '', image: '', veg: true, spiceLevel: 0, isAvailable: true });
+            setFoodForm({ name: '', category: 'Arabian Mandhi', price: '', description: '', image: '', veg: true, spiceLevel: 0, isAvailable: true });
             setShowFoodModal(true);
           }}
         >
@@ -686,7 +699,7 @@ export default function AdminPanel({ embedded = false }) {
           onChange={(e) => setMenuSearch(e.target.value)}
         />
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-          {['All', 'Signature', 'Kanyakumari Specials', 'Juices & Coolers', 'Desserts', 'Chicken', 'Burgers', 'Rice & Meals', 'Starters', 'Sides', 'Spicy'].map((cat) => (
+          {menuCategoriesList.map((cat) => (
             <button
               key={cat}
               onClick={() => setMenuCatFilter(cat)}
@@ -729,7 +742,7 @@ export default function AdminPanel({ embedded = false }) {
                 </div>
                 <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: '4px 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{food.name}</h4>
                 <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--burgundy)', fontSize: '0.98rem' }}>₹{Number(food.price).toFixed(2)}</div>
-                
+
                 <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
                   <button
                     onClick={() => handleToggleAvailability(food._id, food.isAvailable)}
@@ -757,13 +770,103 @@ export default function AdminPanel({ embedded = false }) {
     </div>
   );
 
+  const renderSettings = () => (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Restaurant POS & Store Settings</h2>
+        <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)' }}>Configure tax rates, store branding, receipts & POS defaults</p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
+        <div className="card-dv" style={{ padding: '24px' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: 14 }}>🏢 Store Branding & Details</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: '0.88rem' }}>
+            <div>
+              <label style={{ fontWeight: 700, fontSize: '0.78rem' }}>Restaurant Name</label>
+              <input className="dv-input" defaultValue="DINEVO 5-Star Luxury Resort & Bar" />
+            </div>
+            <div>
+              <label style={{ fontWeight: 700, fontSize: '0.78rem' }}>Helpline / Contact Phone</label>
+              <input className="dv-input" defaultValue="+91 98765 43210" />
+            </div>
+            <div>
+              <label style={{ fontWeight: 700, fontSize: '0.78rem' }}>Address</label>
+              <textarea className="dv-note-box" rows={2} defaultValue="12 Marina Walk, Five-Star Luxury Zone" />
+            </div>
+          </div>
+        </div>
+
+        <div className="card-dv" style={{ padding: '24px' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: 14 }}>🧾 POS Invoice & Tax Configuration</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: '0.88rem' }}>
+            <div>
+              <label style={{ fontWeight: 700, fontSize: '0.78rem' }}>GSTIN Registration</label>
+              <input className="dv-input" defaultValue="33ABCDE1234F1Z5" />
+            </div>
+            <div>
+              <label style={{ fontWeight: 700, fontSize: '0.78rem' }}>FSSAI License No</label>
+              <input className="dv-input" defaultValue="12421001000188" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ fontWeight: 700, fontSize: '0.78rem' }}>CGST %</label>
+                <input className="dv-input" defaultValue="2.5%" disabled />
+              </div>
+              <div>
+                <label style={{ fontWeight: 700, fontSize: '0.78rem' }}>SGST %</label>
+                <input className="dv-input" defaultValue="2.5%" disabled />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card-dv" style={{ padding: '24px' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: 14 }}>🔔 Audio & Hardware Alerts</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>New Order Audio Chime</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Plays sound on incoming table orders</div>
+              </div>
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: soundEnabled ? 'var(--sage)' : '#DDD',
+                  color: soundEnabled ? '#FFF' : '#111',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  cursor: 'pointer'
+                }}
+              >
+                {soundEnabled ? 'ENABLED' : 'DISABLED'}
+              </button>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Vite Dev Server Binding</div>
+              <div style={{ fontSize: '0.78rem', color: '#048A65', fontWeight: 700, marginTop: 2 }}>✓ Host 0.0.0.0 (LAN Connected)</div>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Active Wi-Fi LAN IP</div>
+              <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--burgundy)', fontWeight: 800, marginTop: 2 }}>http://10.115.242.218:3000</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className={`adm-layout ${embedded ? 'embedded' : ''}`}>
       {/* SIDEBAR */}
       <aside className="adm-sidebar">
         <div className="adm-sidebar-brand">
           <div className="dv-logo" style={{ fontSize: '1.6rem', fontWeight: 900 }}>DINE<span style={{ color: 'var(--gold)' }}>VO</span></div>
-          <div style={{ fontSize: '0.7rem', letterSpacing: '0.14em', color: 'var(--ink-soft)', textTransform: 'uppercase', fontWeight: 800, marginTop: 2 }}>Restaurant POS v2.1</div>
+          <div style={{ fontSize: '0.7rem', letterSpacing: '0.14em', color: 'var(--ink-soft)', textTransform: 'uppercase', fontWeight: 800, marginTop: 2 }}>5-Star Resort POS v2.1</div>
         </div>
 
         <nav className="adm-sidebar-nav">
@@ -793,7 +896,7 @@ export default function AdminPanel({ embedded = false }) {
         <div className="adm-topbar">
           <div>
             <span className="eyebrow" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 800 }}>
-              <KitchenIcon /> DINEVO RESTAURANT POS MANAGEMENT
+              <KitchenIcon /> DINEVO 5-STAR RESORT POS MANAGEMENT
             </span>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -814,6 +917,7 @@ export default function AdminPanel({ embedded = false }) {
               {activeTab === 'kitchen' && renderKitchen()}
               {activeTab === 'tables' && renderTables()}
               {activeTab === 'menu' && renderMenu()}
+              {activeTab === 'settings' && renderSettings()}
             </>
           )}
         </div>
@@ -836,7 +940,7 @@ export default function AdminPanel({ embedded = false }) {
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: 700 }}>Category</label>
                   <select className="dv-input" value={foodForm.category} onChange={(e) => setFoodForm({ ...foodForm, category: e.target.value })}>
-                    {['Signature', 'Kanyakumari Specials', 'Juices & Coolers', 'Desserts', 'Chicken', 'Burgers', 'Rice & Meals', 'Starters', 'Sides', 'Spicy'].map((cat) => (
+                    {menuCategoriesList.filter(c => c !== 'All').map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
