@@ -9,6 +9,13 @@ export function getQrTargetUrl(tableCode, customHost = null) {
     return `${cleanHost}/table/${code}`;
   }
 
+  // Check saved Public Long-Distance Host in localStorage
+  const savedPublicHost = typeof window !== 'undefined' && localStorage.getItem('dinevo_public_host');
+  if (savedPublicHost && savedPublicHost.trim()) {
+    const cleanHost = savedPublicHost.trim().replace(/\/+$/, '');
+    return `${cleanHost}/table/${code}`;
+  }
+
   // Check VITE_PUBLIC_URL or VITE_APP_URL environment variables
   const envUrl =
     (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_PUBLIC_URL || import.meta.env.VITE_APP_URL));

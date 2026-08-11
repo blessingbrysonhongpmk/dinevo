@@ -34,6 +34,7 @@ export default function AdminPanel({ embedded = false }) {
   const [errorMap, setErrorMap] = useState({});
   const [salesData, setSalesData] = useState([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [publicHost, setPublicHost] = useState(localStorage.getItem('dinevo_public_host') || '');
   const prevOrderCountRef = useRef(0);
   const navigate = useNavigate();
 
@@ -853,6 +854,32 @@ export default function AdminPanel({ embedded = false }) {
             <div style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
               <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Active Wi-Fi LAN IP</div>
               <div style={{ fontSize: '0.85rem', fontFamily: 'monospace', color: 'var(--burgundy)', fontWeight: 800, marginTop: 2 }}>http://10.115.242.218:3000</div>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--line)', paddingTop: 14 }}>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>🌐 Public Long-Distance Host URL</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--ink-soft)', marginTop: 2 }}>Enter Ngrok / Cloudflare Tunnel / Public domain for remote 4G/5G ordering from anywhere</div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                <input
+                  className="dv-input"
+                  placeholder="https://dinevo.loca.lt"
+                  value={publicHost}
+                  onChange={(e) => setPublicHost(e.target.value)}
+                  style={{ fontSize: '0.82rem' }}
+                />
+                <button
+                  type="button"
+                  className="btn-dv btn-primary"
+                  style={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}
+                  onClick={() => {
+                    localStorage.setItem('dinevo_public_host', publicHost);
+                    alert('Public Long-Distance Host saved! All QR codes now point to this URL.');
+                    fetchData();
+                  }}
+                >
+                  Save URL
+                </button>
+              </div>
             </div>
           </div>
         </div>

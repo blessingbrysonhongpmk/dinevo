@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 import { useCart } from '../context/CartContext';
 
+import RemoteBookingModal from '../components/RemoteBookingModal';
+
 const STATUS_CONFIG = {
   AVAILABLE: { bg: 'rgba(0, 230, 153, 0.12)', border: 'rgba(0, 230, 153, 0.4)', color: '#00E699', badgeBg: '#00E699', badgeColor: '#0A1A14', label: 'AVAILABLE' },
   OCCUPIED: { bg: 'rgba(255, 77, 77, 0.12)', border: 'rgba(255, 77, 77, 0.3)', color: '#FF4D4D', badgeBg: '#FF4D4D', badgeColor: '#FFFFFF', label: 'OCCUPIED' },
@@ -30,6 +32,7 @@ export default function UserMobilePanel({ embedded = false }) {
   const [selectedFoodItem, setSelectedFoodItem] = useState(null);
   const [foodNotes, setFoodNotes] = useState('');
   const [spiceLevel, setSpiceLevel] = useState('Medium');
+  const [showRemoteModal, setShowRemoteModal] = useState(false);
   const { startSession, session } = useCart();
 
   const fetchTables = useCallback(async () => {
@@ -236,8 +239,34 @@ export default function UserMobilePanel({ embedded = false }) {
       <div className="v40-section-header">
         <span className="v40-eyebrow">TABLE RESERVATION</span>
         <h2 className="v40-title">Select Dining Table</h2>
-        <p className="v40-subtitle">Tap an available table to begin your private order session</p>
+        <p className="v40-subtitle">Tap an available table or book remotely from long distance</p>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setShowRemoteModal(true)}
+        style={{
+          width: '100%',
+          padding: '14px',
+          borderRadius: '16px',
+          border: '1px solid #00E699',
+          background: 'rgba(0, 230, 153, 0.14)',
+          color: '#00E699',
+          fontSize: '0.92rem',
+          fontWeight: 800,
+          marginBottom: '20px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          boxShadow: '0 8px 20px rgba(0,230,153,0.15)'
+        }}
+      >
+        🌐 REMOTE LONG-DISTANCE TABLE BOOKING & PRE-ORDER
+      </button>
+
+      {showRemoteModal && <RemoteBookingModal onClose={() => setShowRemoteModal(false)} />}
 
       {bookingError && (
         <div className="v40-error-banner">

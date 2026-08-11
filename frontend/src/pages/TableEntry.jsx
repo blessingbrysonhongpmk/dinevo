@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useCart } from '../context/CartContext';
 import { QrIcon, ShieldCheckIcon } from '../components/Icons';
 import QRScanner from '../components/QRScanner';
+import RemoteBookingModal from '../components/RemoteBookingModal';
 
 export default function TableEntry() {
   const { tableCode: paramCode } = useParams();
@@ -20,6 +21,7 @@ export default function TableEntry() {
   const [scanning, setScanning] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
+  const [showRemoteModal, setShowRemoteModal] = useState(false);
 
   const navigate = useNavigate();
   const { startSession, session } = useCart();
@@ -294,6 +296,27 @@ export default function TableEntry() {
                   <QrIcon width={18} height={18} /> SCAN TABLE QR
                 </button>
 
+                <button
+                  type="button"
+                  onClick={() => setShowRemoteModal(true)}
+                  style={{
+                    padding: '14px',
+                    borderRadius: '14px',
+                    border: '1px solid #00E699',
+                    background: 'rgba(0, 230, 153, 0.12)',
+                    color: '#00E699',
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8
+                  }}
+                >
+                  🌐 REMOTE LONG-DISTANCE TABLE BOOKING & PRE-ORDER
+                </button>
+
                 <Link
                   to="/user"
                   className="btn-dv btn-outline btn-block"
@@ -306,6 +329,8 @@ export default function TableEntry() {
           )}
         </div>
       </div>
+
+      {showRemoteModal && <RemoteBookingModal onClose={() => setShowRemoteModal(false)} />}
 
       {/* DESKTOP EXPLANATION MODAL */}
       {showQrModal && (
