@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { QrIcon } from './Icons';
 
 export default function HeroSection({ session }) {
   const [showQrModal, setShowQrModal] = useState(false);
+  const [customHost, setCustomHost] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Default host to current origin or stored URL
+    const savedHost = localStorage.getItem('dinevo_public_url');
+    if (savedHost) {
+      setCustomHost(savedHost);
+    } else {
+      setCustomHost(window.location.origin);
+    }
+  }, []);
+
+  const handleHostChange = (e) => {
+    const val = e.target.value;
+    setCustomHost(val);
+    localStorage.setItem('dinevo_public_url', val);
+  };
 
   const handleScanClick = () => {
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -16,7 +33,8 @@ export default function HeroSection({ session }) {
     }
   };
 
-  const sampleQrUrl = `${window.location.origin}/table/DINEVO-T01`;
+  const activeHost = (customHost || window.location.origin).replace(/\/$/, '');
+  const sampleQrUrl = `${activeHost}/table/DINEVO-T01`;
   const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(sampleQrUrl)}`;
 
   return (
@@ -50,8 +68,8 @@ export default function HeroSection({ session }) {
               PREMIUM DIGITAL DINING
             </h2>
 
-            <p style={{ fontSize: '1.15rem', color: 'rgba(250,246,240,0.9)', maxWidth: '520px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-              Scan the QR code below on your mobile phone to open Table 01 ordering session directly!
+            <p style={{ fontSize: '1.15rem', color: 'rgba(250,246,240,0.9)', maxWidth: '540px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+              Scan the QR code below on your phone camera to open Table 01 ordering session directly!
             </p>
 
             {/* LIVE SCANNABLE TABLE QR CODE ON FRONT PAGE */}
@@ -62,20 +80,33 @@ export default function HeroSection({ session }) {
                 padding: '20px',
                 boxShadow: '0 15px 45px rgba(0,0,0,0.5)',
                 border: '3px solid var(--gold, #F77F00)',
-                marginBottom: '24px',
-                maxWidth: '260px'
+                marginBottom: '20px',
+                maxWidth: '280px',
+                width: '100%'
               }}
             >
               <img
                 src={qrImageSrc}
                 alt="Table 01 QR Code"
-                style={{ width: '220px', height: '220px', display: 'block', borderRadius: '12px' }}
+                style={{ width: '220px', height: '220px', display: 'block', margin: '0 auto', borderRadius: '12px' }}
               />
               <div style={{ color: '#1A1721', fontSize: '0.9rem', fontWeight: 900, marginTop: 12, letterSpacing: '0.05em' }}>
                 TABLE 01 QR CODE
               </div>
-              <div style={{ color: '#666', fontSize: '0.75rem', fontWeight: 600 }}>
+              <div style={{ color: '#666', fontSize: '0.75rem', fontWeight: 600, marginBottom: 8 }}>
                 Scan with your phone camera
+              </div>
+
+              {/* Host URL configurator for local IP / Vercel deployment */}
+              <div style={{ marginTop: 8, textAlign: 'left' }}>
+                <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#444', textTransform: 'uppercase' }}>QR Target Host (Vercel / IP)</label>
+                <input
+                  className="dv-input"
+                  style={{ padding: '6px 10px', fontSize: '0.75rem', marginTop: 2, background: '#F5F2EC', borderColor: '#DDD', color: '#111' }}
+                  value={customHost}
+                  onChange={handleHostChange}
+                  placeholder="https://dinevo.vercel.app"
+                />
               </div>
             </div>
 
