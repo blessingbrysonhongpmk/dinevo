@@ -6,6 +6,12 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
   const [cameraState, setCameraState] = useState('initializing'); // 'initializing', 'active', 'denied', 'error', 'unsupported'
   const [errorMessage, setErrorMessage] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [maxZoom, setMaxZoom] = useState(1);
+  const [supportsZoom, setSupportsZoom] = useState(false);
+  const [supportsTorch, setSupportsTorch] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
+
   const scannerRef = useRef(null);
   const fileInputRef = useRef(null);
   const elementId = 'dinevo-qr-reader';
@@ -21,6 +27,37 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
       tableCode = urlParams.get('table') || tableCode;
     }
     return tableCode.toUpperCase();
+  };
+
+  const applyCameraZoom = async (newZoom) => {
+    try {
+      if (!scannerRef.current) return;
+      const track = scannerRef.current.getRunningTrack();
+      if (track && track.applyConstraints) {
+        await track.applyConstraints({
+          advanced: [{ zoom: newZoom }]
+        });
+        setZoomLevel(newZoom);
+      }
+    } catch (e) {
+      console.warn('Zoom constraint error:', e);
+    }
+  };
+
+  const toggleTorch = async () => {
+    try {
+      if (!scannerRef.current) return;
+      const track = scannerRef.current.getRunningTrack();
+      if (track && track.applyConstraints) {
+        const nextTorch = !torchOn;
+        await track.applyConstraints({
+          advanced: [{ torch: nextTorch }]
+        });
+        setTorchOn(nextTorch);
+      }
+    } catch (e) {
+      console.warn('Torch constraint error:', e);
+    }
   };
 
   useEffect(() => {
@@ -40,11 +77,19 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
         html5QrcodeScanner = new Html5Qrcode(elementId);
         scannerRef.current = html5QrcodeScanner;
 
+        // Enterprise HD Camera Video Constraints for Long-Distance Sharpness
+        const cameraConstraints = {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          focusMode: { ideal: 'continuous' }
+        };
+
         const config = {
-          fps: 20,
+          fps: 25,
           qrbox: (w, h) => ({
-            width: Math.min(w * 0.9, 320),
-            height: Math.min(h * 0.9, 320)
+            width: Math.min(w * 0.9, 340),
+            height: Math.min(h * 0.9, 340)
           }),
           aspectRatio: 1.0,
           experimentalFeatures: {
@@ -53,7 +98,7 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
         };
 
         await html5QrcodeScanner.start(
-          { facingMode: 'environment' },
+          cameraConstraints,
           config,
           (decodedText) => {
             if (!isMounted) return;
@@ -67,12 +112,29 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
             }
           },
           () => {
-            // Ignore frame scan failures
+            // Frame pass
           }
         );
 
         if (isMounted) {
           setCameraState('active');
+
+          // Check Hardware Controls (Zoom & Torch)
+          try {
+            const track = html5QrcodeScanner.getRunningTrack();
+            if (track && track.getCapabilities) {
+              const caps = track.getCapabilities();
+              if (caps.zoom) {
+                setSupportsZoom(true);
+                setMaxZoom(caps.zoom.max || 4);
+              }
+              if (caps.torch) {
+                setSupportsTorch(true);
+              }
+            }
+          } catch (e) {
+            // Hardware caps optional
+          }
         }
       } catch (err) {
         console.warn('QR Scanner Error:', err);
@@ -81,7 +143,7 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
         const strErr = String(err).toLowerCase();
         if (strErr.includes('notallowederror') || strErr.includes('permission denied')) {
           setCameraState('denied');
-          setErrorMessage('Camera permission was denied. You can still upload a QR photo below!');
+          setErrorMessage('Camera permission denied. Use the Upload QR Photo button below!');
         } else {
           setCameraState('error');
           setErrorMessage('Unable to start camera scanner. Use the Upload QR Photo button below!');
@@ -107,7 +169,47 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
     };
   }, []);
 
-  // Handle Photo / Gallery Image Upload Scan
+  // Multi-pass Canvas Enhancer for Distant / Small QR Photos
+  const processImageCanvasPass = async (file) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Scale up 2x for sharp distant QR feature extraction
+        canvas.width = Math.min(img.width * 1.5, 2000);
+        canvas.height = Math.min(img.height * 1.5, 2000);
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // High contrast binarization enhancement
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+          const val = avg > 120 ? 255 : 0;
+          data[i] = val;
+          data[i + 1] = val;
+          data[i + 2] = val;
+        }
+        ctx.putImageData(imgData, 0, 0);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const enhancedFile = new File([blob], 'enhanced_qr.png', { type: 'image/png' });
+            resolve(enhancedFile);
+          } else {
+            resolve(file);
+          }
+        });
+      };
+      img.onerror = () => resolve(file);
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Handle Photo / Gallery Image Upload Scan with Dual-Pass Engine
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -122,14 +224,24 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
         scannerRef.current = instance;
       }
 
-      const decodedResult = await instance.scanFileV2(file, false);
-      const text = decodedResult?.decodedText || decodedResult;
+      // Pass 1: Raw Image Scan
+      let text = '';
+      try {
+        const decodedResult = await instance.scanFileV2(file, false);
+        text = decodedResult?.decodedText || decodedResult;
+      } catch (p1Err) {
+        // Pass 2: Enhanced Contrast Upsample Canvas Pass for Distant / Small QR
+        const enhancedFile = await processImageCanvasPass(file);
+        const decodedResult = await instance.scanFileV2(enhancedFile, false);
+        text = decodedResult?.decodedText || decodedResult;
+      }
+
       const tableCode = parseTableCode(text);
 
       if (tableCode) {
         if (onScanSuccess) onScanSuccess(tableCode);
       } else {
-        alert('Could not detect a valid DINEVO Table QR code in the uploaded photo. Please try a clearer picture.');
+        alert('Could not detect a valid DINEVO Table QR code in the uploaded photo. Please try taking a closer photo or using the camera zoom.');
       }
     } catch (err) {
       console.error('File scan error:', err);
@@ -146,29 +258,98 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
         id={elementId}
         style={{
           width: '100%',
-          maxWidth: '320px',
+          maxWidth: '340px',
           margin: '0 auto',
-          borderRadius: '20px',
+          borderRadius: '24px',
           overflow: 'hidden',
-          background: '#1A1721',
-          minHeight: '260px',
+          background: '#0D0C10',
+          minHeight: '280px',
           position: 'relative',
-          border: '2px solid var(--gold, #F77F00)',
-          boxShadow: '0 12px 32px rgba(0,0,0,0.3)'
+          border: '3px solid var(--gold, #F77F00)',
+          boxShadow: '0 15px 40px rgba(0,0,0,0.4)'
         }}
       />
 
       {cameraState === 'initializing' && (
-        <div style={{ marginTop: '14px', color: 'var(--gold, #F77F00)', fontSize: '0.88rem', fontWeight: 600 }}>
+        <div style={{ marginTop: '14px', color: 'var(--gold, #F77F00)', fontSize: '0.88rem', fontWeight: 700 }}>
           <span className="dv-spinner" style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
-          Opening camera scanner...
+          Initializing 1080p HD Distance Scanner...
         </div>
       )}
 
       {cameraState === 'active' && (
-        <p style={{ marginTop: '12px', color: '#AAA', fontSize: '0.85rem' }}>
-          Point camera at QR code or upload a photo below
-        </p>
+        <div>
+          <p style={{ marginTop: '10px', color: '#BBB', fontSize: '0.85rem' }}>
+            Point camera at QR code or use Zoom for long distance
+          </p>
+
+          {/* ZOOM & TORCH CONTROLS FOR LONG DISTANCE SCANNING */}
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center', marginTop: 10, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => applyCameraZoom(1)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '999px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: zoomLevel === 1 ? 'var(--gold, #F77F00)' : 'rgba(255,255,255,0.1)',
+                color: zoomLevel === 1 ? '#000' : '#FFF',
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              🔍 1x Normal
+            </button>
+            <button
+              onClick={() => applyCameraZoom(2)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '999px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: zoomLevel === 2 ? 'var(--gold, #F77F00)' : 'rgba(255,255,255,0.1)',
+                color: zoomLevel === 2 ? '#000' : '#FFF',
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              🔍 2x Distance
+            </button>
+            <button
+              onClick={() => applyCameraZoom(3)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '999px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                background: zoomLevel === 3 ? 'var(--gold, #F77F00)' : 'rgba(255,255,255,0.1)',
+                color: zoomLevel === 3 ? '#000' : '#FFF',
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              🔍 3x Far
+            </button>
+
+            {supportsTorch && (
+              <button
+                onClick={toggleTorch}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: torchOn ? '#FFD700' : 'rgba(255,255,255,0.15)',
+                  color: torchOn ? '#000' : '#FFF',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  cursor: 'pointer'
+                }}
+              >
+                {torchOn ? '💡 Flash ON' : '🔦 Flash'}
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       {(cameraState === 'denied' || cameraState === 'error' || cameraState === 'unsupported') && (
@@ -180,7 +361,7 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
       )}
 
       {/* PHOTO / GALLERY UPLOAD BUTTON */}
-      <div style={{ marginTop: '16px' }}>
+      <div style={{ marginTop: '14px' }}>
         <input
           ref={fileInputRef}
           type="file"
@@ -206,7 +387,7 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
           {uploading ? (
             <>
               <span className="dv-spinner" style={{ width: 18, height: 18 }} />
-              Scanning QR Photo...
+              Processing HD Dual-Pass Image...
             </>
           ) : (
             <>

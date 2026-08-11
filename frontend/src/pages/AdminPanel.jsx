@@ -636,7 +636,7 @@ export default function AdminPanel({ embedded = false }) {
           const status = (t.status || 'AVAILABLE').toUpperCase();
           const sc = STATUS_COLORS[status] || STATUS_COLORS.AVAILABLE;
           const targetUrl = getQrTargetUrl(t.code);
-          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&margin=10&data=${encodeURIComponent(targetUrl)}`;
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&ecc=H&margin=15&data=${encodeURIComponent(targetUrl)}`;
 
           return (
             <div className="card-dv" key={idx} style={{ padding: '20px', textAlign: 'center', border: status === 'OCCUPIED' ? '2px solid rgba(230,57,70,0.4)' : '1px solid var(--line)' }}>

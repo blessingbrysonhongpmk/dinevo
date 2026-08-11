@@ -12,9 +12,9 @@ export default function AdminQRDisplay({ table, onClose }) {
   const tableNum = table.tableNumber || '01';
   const tableStatus = table.status || 'AVAILABLE';
 
-  // High-res QR code URL with proper quiet zone and LAN/Production detection
+  // Ultra High-Res HD 600x600 QR code URL with 20px quiet zone & High Error Correction (ecc=H)
   const targetUrl = getQrTargetUrl(tableCode, customHost);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&ecc=H&margin=15&data=${encodeURIComponent(targetUrl)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&ecc=H&margin=20&data=${encodeURIComponent(targetUrl)}`;
 
   const handleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
