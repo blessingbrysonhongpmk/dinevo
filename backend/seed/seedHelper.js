@@ -19,7 +19,7 @@ const defaultRestaurant = {
 };
 
 const defaultItems = [
-  // 1. ARABIAN MANDHI & BIRYANI
+  // 1. ARABIAN MANDHI
   {
     name: 'Royal Chicken Alfaham Kuzhi Mandhi',
     description: 'Authentic Yemeni slow-cooked basmati Mandhi rice served with charcoal-grilled Alfaham chicken, garlic toum, spicy tomato salsa & fresh salad.',
@@ -64,12 +64,14 @@ const defaultItems = [
     ingredients: ['Peri Peri Chicken', 'Mandhi Rice', 'Spicy Dip'],
     addOns: [{ name: 'Cheese Slice', price: 40 }]
   },
+
+  // 2. ROYAL BIRYANIS
   {
     name: 'Hyderabadi Dum Chicken Biryani',
     description: 'Long-grain basmati rice cooked on slow dum with saffron, mint, whole spices & succulent chicken pieces.',
     price: 480,
     image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=1200&auto=format&fit=crop',
-    category: 'Arabian Mandhi',
+    category: 'Royal Biryanis',
     veg: false,
     spiceLevel: 2,
     rating: 4.9,
@@ -78,8 +80,36 @@ const defaultItems = [
     ingredients: ['Basmati Rice', 'Chicken', 'Saffron', 'Mint', 'Ghee', 'Raita'],
     addOns: [{ name: 'Mirchi Ka Salan', price: 40 }, { name: 'Boiled Egg', price: 20 }]
   },
+  {
+    name: 'Royal Malabar Mutton Biryani',
+    description: 'Kaima rice biryani dum-cooked with tender mutton pieces, cashew nuts, raisins & fragrant ghee.',
+    price: 560,
+    image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=1200&auto=format&fit=crop',
+    category: 'Royal Biryanis',
+    veg: false,
+    spiceLevel: 2,
+    rating: 4.95,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Kaima Rice', 'Tender Mutton', 'Ghee', 'Cashews'],
+    addOns: []
+  },
+  {
+    name: 'Kanyakumari Special Prawn Biryani',
+    description: 'Fresh ocean jumbo prawns tossed with roasted coconut spices, layered with aromatic basmati rice.',
+    price: 580,
+    image: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?q=80&w=1200&auto=format&fit=crop',
+    category: 'Royal Biryanis',
+    veg: false,
+    spiceLevel: 3,
+    rating: 4.92,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Ocean Prawns', 'Nanjil Spices', 'Basmati Rice'],
+    addOns: []
+  },
 
-  // 2. JUICES & COOLERS
+  // 3. JUICES & COOLERS
   {
     name: 'Electric Blue Lagoon Mocktail',
     description: 'Refreshing curaçao blue cooler with sparkling soda, fresh Key lime juice, crushed ice & garden mint.',
@@ -155,7 +185,7 @@ const defaultItems = [
     addOns: [{ name: 'Extra Espresso Shot', price: 30 }]
   },
 
-  // 3. SNACKS & FINGER FOODS
+  // 4. SNACKS & FINGER FOODS
   {
     name: 'Crispy Peri Peri French Fries',
     description: 'Thick cut potato fries tossed hot with spicy African Peri Peri seasoning & served with garlic aioli.',
@@ -198,7 +228,7 @@ const defaultItems = [
     addOns: []
   },
 
-  // 4. STARTERS & TANDOORI
+  // 5. STARTERS & TANDOORI
   {
     name: 'Firecracker Naga BBQ Wings',
     description: 'Crispy fried chicken wings coated in hot ghost pepper & honey garlic glaze.',
@@ -256,7 +286,7 @@ const defaultItems = [
     addOns: []
   },
 
-  // 5. BURGERS & WRAPS
+  // 6. BURGERS & WRAPS
   {
     name: 'Truffle Wagyu Smash Burger',
     description: 'Double Wagyu beef patty, black truffle aioli, aged English cheddar, crispy shallots on toasted brioche.',
@@ -300,7 +330,7 @@ const defaultItems = [
     addOns: [{ name: 'Extra Cheese Slice', price: 35 }]
   },
 
-  // 6. KANYAKUMARI SPECIALS
+  // 7. KANYAKUMARI SPECIALS
   {
     name: 'Nanjil-style Fish Curry Rice',
     description: 'Authentic Kanyakumari coastal curry cooked with fresh kingfish, ground coconut, tamarind & roasted coconut oil, served with steamed matta rice.',
@@ -342,7 +372,37 @@ const defaultItems = [
     addOns: [{ name: 'Malabar Parotta (2 pcs)', price: 50 }]
   },
 
-  // 7. 5-STAR DESSERTS
+  // 8. CONTINENTAL PASTAS & PIZZAS
+  {
+    name: 'Creamy Truffle Alfredo Fettuccine',
+    description: 'Handcrafted fettuccine tossed in rich Parmesan cream sauce, wild porcini mushrooms & black truffle oil.',
+    price: 420,
+    image: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281464?q=80&w=1200&auto=format&fit=crop',
+    category: 'Continental Pastas',
+    veg: true,
+    spiceLevel: 1,
+    rating: 4.92,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['Fettuccine', 'Parmesan', 'Truffle Oil', 'Porcini Mushrooms'],
+    addOns: [{ name: 'Grilled Chicken Breast', price: 80 }]
+  },
+  {
+    name: 'Wood-Fired Artisanal Margherita Pizza',
+    description: 'Neapolitan sourdough crust baked at 900°F with San Marzano tomato sauce, fresh buffalo mozzarella & basil.',
+    price: 460,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=1200&auto=format&fit=crop',
+    category: 'Continental Pastas',
+    veg: true,
+    spiceLevel: 1,
+    rating: 4.94,
+    isPopular: true,
+    isAvailable: true,
+    ingredients: ['San Marzano Tomato', 'Buffalo Mozzarella', 'Fresh Basil'],
+    addOns: []
+  },
+
+  // 9. 5-STAR DESSERTS
   {
     name: 'Belgian Dark Chocolate Lava Cake',
     description: 'Warm dark chocolate sponge cake with molten Belgian cocoa centre, served with Madagascar vanilla ice cream.',
@@ -388,7 +448,7 @@ const defaultItems = [
     addOns: []
   },
 
-  // 8. SOUPS & BEVERAGES
+  // 10. SOUPS & BEVERAGES
   {
     name: 'Sweet Corn Chicken Soup',
     description: 'Rich oriental chicken broth with sweet kernel corn, egg drops & white pepper.',
