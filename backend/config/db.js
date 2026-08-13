@@ -12,8 +12,13 @@ const connectDB = async () => {
   try {
     console.log('DINEVO SERVER STARTING...');
     await mongoose.connect(targetUri, {
-      serverSelectionTimeoutMS: 10000
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
+      socketTimeoutMS: 45000,
+      retryWrites: true,
+      retryReads: true
     });
+
     console.log('MongoDB Atlas connected');
     console.log('Database: dinevo');
     dbStore.setConnected(true);
