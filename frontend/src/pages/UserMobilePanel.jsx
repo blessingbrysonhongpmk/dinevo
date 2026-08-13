@@ -24,10 +24,37 @@ const STATUS_CONFIG = {
 
 export default function UserMobilePanel({ embedded = false }) {
   const [view, setView] = useState('tables'); // tables, confirmed, menu, cart, bill, payment, order
-  const [tables, setTables] = useState([]);
+  const [tables, setTables] = useState([
+    { _id: 't1', tableNumber: '01', code: 'DINEVO-T01', capacity: 4, status: 'AVAILABLE' },
+    { _id: 't2', tableNumber: '02', code: 'DINEVO-T02', capacity: 2, status: 'AVAILABLE' },
+    { _id: 't3', tableNumber: '03', code: 'DINEVO-T03', capacity: 6, status: 'AVAILABLE' },
+    { _id: 't4', tableNumber: '04', code: 'DINEVO-T04', capacity: 4, status: 'OCCUPIED' },
+    { _id: 't5', tableNumber: '05', code: 'DINEVO-T05', capacity: 8, status: 'AVAILABLE' },
+    { _id: 't6', tableNumber: '06', code: 'DINEVO-T06', capacity: 4, status: 'AVAILABLE' },
+    { _id: 't7', tableNumber: '07', code: 'DINEVO-T07', capacity: 2, status: 'AVAILABLE' },
+    { _id: 't8', tableNumber: '08', code: 'DINEVO-T08', capacity: 6, status: 'AVAILABLE' }
+  ]);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [menuItems, setMenuItems] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [menuItems, setMenuItems] = useState(() =>
+    FALLBACK_MENU_ITEMS.filter((item, index, self) =>
+      index === self.findIndex((t) => (t.name || '').trim().toLowerCase() === (item.name || '').trim().toLowerCase())
+    )
+  );
+  const [categories, setCategories] = useState([
+    'All',
+    'Signature',
+    'Biryani',
+    'Mandi',
+    'Parotta & Gravy',
+    'Dosa & South Indian',
+    'Starters',
+    'Grills & Tandoor',
+    'Seafood',
+    'Kanyakumari Specials',
+    'Juices & Cool Drinks',
+    'Desserts'
+  ]);
+
   const [activeCategory, setActiveCategory] = useState('All');
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -186,15 +213,19 @@ export default function UserMobilePanel({ embedded = false }) {
 
   // Poll order status if active order exists
   useEffect(() => {
-    if (!currentOrder) return;
+    if (!currentOrder || !currentOrder._id) return;
     const interval = setInterval(async () => {
       try {
         const res = await api.get(`/orders/${currentOrder._id}`);
-        setCurrentOrder(res.data);
+        const orderData = res.data?.data || res.data;
+        if (orderData && orderData._id) {
+          setCurrentOrder(orderData);
+        }
       } catch (e) { /* ignore */ }
-    }, 3000);
+    }, 2500);
     return () => clearInterval(interval);
   }, [currentOrder]);
+
 
   const handleBookTable = async (table) => {
     setBooking(table.code);
@@ -269,7 +300,8 @@ export default function UserMobilePanel({ embedded = false }) {
         }))
       };
       const res = await api.post('/orders', orderPayload);
-      const createdOrder = res.data;
+      const createdOrder = res.data.data || res.data;
+
 
       let payData = null;
       try {

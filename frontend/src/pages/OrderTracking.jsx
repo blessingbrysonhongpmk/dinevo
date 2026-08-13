@@ -25,7 +25,7 @@ export default function OrderTracking({ viewMode }) {
     api
       .get(`/orders/${id}`)
       .then((res) => {
-        setOrder(res.data);
+        setOrder(res.data?.data || res.data);
         setError(false);
       })
       .catch((err) => {
@@ -38,9 +38,10 @@ export default function OrderTracking({ viewMode }) {
   useEffect(() => {
     fetchOrder();
     const interval = setInterval(() => {
-      api.get(`/orders/${id}`).then((res) => setOrder(res.data)).catch(() => {});
-    }, 3000);
+      api.get(`/orders/${id}`).then((res) => setOrder(res.data?.data || res.data)).catch(() => {});
+    }, 2500);
     return () => clearInterval(interval);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -56,7 +57,8 @@ export default function OrderTracking({ viewMode }) {
           payload.servingCode = order.servingCode;
         }
         const res = await api.patch(`/orders/${id}/status`, payload);
-        setOrder(res.data);
+        setOrder(res.data?.data || res.data);
+
       } catch (err) {
         console.error('Status update error:', err);
       }
