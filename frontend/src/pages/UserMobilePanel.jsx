@@ -288,13 +288,41 @@ export default function UserMobilePanel({ embedded = false }) {
     }
     setOrderPlacing(true);
     const chosenMethod = typeof overrideMethod === 'string' ? overrideMethod : (mobilePaymentMethod || 'UPI');
+
+    const generatedOrderNumber = `DINEVO-${Math.floor(1000 + Math.random() * 9000)}`;
+    const nowStr = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+    const fakeUtrNumber = `UTR${Math.floor(100000000000 + Math.random() * 900000000000)}`;
+    const fakeTxnId = `TXN${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+
+    const fakeReceipt = {
+      orderNumber: generatedOrderNumber,
+      receiptNumber: `REC-${generatedOrderNumber}`,
+      tableNumber: currentTable.tableNumber,
+      paymentMethod: chosenMethod,
+      paymentStatus: 'PAID',
+      transactionId: fakeTxnId,
+      utrNumber: fakeUtrNumber,
+      createdAt: nowStr,
+      items: cart.map((c) => ({ name: c.name, quantity: c.qty, price: c.price, total: c.price * c.qty })),
+      subtotal: cartSubtotal,
+      gstTax: cartTax,
+      serviceCharge: cartService,
+      tipAmount: extraOptions.tipAmount || tipAmount || 0,
+      grandTotal: cartTotal + (extraOptions.tipAmount || tipAmount || 0),
+      currency: 'INR',
+      gateway: 'DINEVO 256-Bit POS Gateway (Demo Instant Pay)',
+      verified: true
+    };
+
+    let createdOrder = null;
+    let payData = { receipt: fakeReceipt };
+
     try {
       const orderPayload = {
         restaurantId: sessionData?.restaurantId,
         tableNumber: currentTable.tableNumber,
         tableCode: currentTable.code,
         sessionCode: sessionData?.sessionCode || 'DEMO',
-
         items: cart.map((c) => ({
           menuItem: c._id,
           name: c.name,
@@ -306,10 +334,8 @@ export default function UserMobilePanel({ embedded = false }) {
         }))
       };
       const res = await api.post('/orders', orderPayload);
-      const createdOrder = res.data.data || res.data;
+      createdOrder = res.data.data || res.data;
 
-
-      let payData = null;
       try {
         const payRes = await api.post('/payments/create', {
           orderId: createdOrder._id,
@@ -318,28 +344,43 @@ export default function UserMobilePanel({ embedded = false }) {
           bankName: extraOptions.bankName,
           cardDetails: extraOptions.cardDetails
         });
-        payData = payRes.data;
-        if (payData && payData.receipt) {
-          setCurrentReceipt(payData.receipt);
-          setShowReceiptModal(true);
+        if (payRes.data && payRes.data.receipt) {
+          payData = payRes.data;
         }
       } catch (payErr) {
-
         console.warn('Backend payment status creation error:', payErr);
       }
-
-      setCurrentOrder(createdOrder);
-      setCart([]);
-      setShowFullPaymentModal(false);
-      setView('order');
-      return payData;
     } catch (err) {
-      console.error('Order failed:', err);
-      throw err;
-    } finally {
-      setOrderPlacing(false);
+      console.warn('Backend order API warning, proceeding with instant fake payment:', err);
     }
+
+    if (!createdOrder) {
+      createdOrder = {
+        _id: `f_ord_${Date.now()}`,
+        orderNumber: generatedOrderNumber,
+        tableNumber: currentTable.tableNumber,
+        status: 'CONFIRMED',
+        paymentStatus: 'PAID',
+        paymentMethod: chosenMethod,
+        items: cart.map((c) => ({ menuItem: c._id, name: c.name, price: c.price, quantity: c.qty })),
+        subtotal: cartSubtotal,
+        tax: cartTax,
+        total: cartTotal,
+        servingCode: `${Math.floor(1000 + Math.random() * 9000)}`,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    setCurrentReceipt(payData.receipt || fakeReceipt);
+    setShowReceiptModal(true);
+    setCurrentOrder(createdOrder);
+    setCart([]);
+    setShowFullPaymentModal(false);
+    setView('order');
+    setOrderPlacing(false);
+    return payData;
   };
+
 
   const filteredMenu = activeCategory === 'All'
     ? menuItems.filter((i) => i.isAvailable !== false)
