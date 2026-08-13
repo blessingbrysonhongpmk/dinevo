@@ -237,6 +237,14 @@ const dbStore = {
     return docs;
   },
 
+  async countMenuItems() {
+    if (this.isDbConnected()) {
+      return await MenuItemModel.countDocuments({});
+    }
+    return memoryDb.menuItems.length;
+  },
+
+
   // ORDERS WITH BACKEND PRICE VALIDATION
   async createOrder({ restaurantId, tableNumber, sessionCode, items, customerNote }) {
     if (!restaurantId || !tableNumber || !items || !Array.isArray(items) || items.length === 0) {

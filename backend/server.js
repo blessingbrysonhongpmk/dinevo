@@ -99,12 +99,20 @@ app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000;
+let server;
 
 const startServer = async () => {
   try {
     await connectDB();
-    app.listen(PORT, '0.0.0.0', () => {
+    server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`DINEVO server running on port ${PORT}`);
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use by another process.`);
+        process.exit(1);
+      }
     });
   } catch (err) {
     console.error('Server startup error:', err);
@@ -112,6 +120,30 @@ const startServer = async () => {
   }
 };
 
+const handleShutdown = (signal) => {
+  if (server) {
+    server.close(() => {
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
+};
+
+process.once('SIGUSR2', () => {
+  if (server) {
+    server.close(() => {
+      process.kill(process.pid, 'SIGUSR2');
+    });
+  } else {
+    process.kill(process.pid, 'SIGUSR2');
+  }
+});
+
+process.on('SIGINT', () => handleShutdown('SIGINT'));
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+
 startServer();
+
 
 
