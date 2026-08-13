@@ -96,13 +96,15 @@ export default function AdminPanel({ embedded = false }) {
         api.get('/orders/analytics').catch(() => ({ data: [] }))
       ]);
 
-      const newOrders = Array.isArray(ordRes.data) ? ordRes.data : [];
+      const rawOrders = ordRes.data?.data || ordRes.data;
+      const newOrders = Array.isArray(rawOrders) ? rawOrders : [];
       if (prevOrderCountRef.current > 0 && newOrders.length > prevOrderCountRef.current && soundEnabled) {
         playAudioAlert();
       }
       prevOrderCountRef.current = newOrders.length;
 
       setOrders(newOrders);
+
       setTables(Array.isArray(tblRes.data) ? tblRes.data : []);
       setFoods(Array.isArray(foodRes.data) ? foodRes.data : foodRes.data?.data || []);
       setSalesData(Array.isArray(analyticsRes.data) ? analyticsRes.data : []);

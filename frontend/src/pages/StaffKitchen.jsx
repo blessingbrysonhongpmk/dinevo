@@ -12,7 +12,11 @@ export default function StaffKitchen() {
   const fetchOrders = () => {
     api
       .get('/orders/restaurant/all')
-      .then((res) => setOrders(res.data))
+      .then((res) => {
+        const raw = res.data?.data || res.data;
+        setOrders(Array.isArray(raw) ? raw : []);
+      })
+
       .catch((err) => console.error('Kitchen error:', err))
       .finally(() => setLoading(false));
   };
