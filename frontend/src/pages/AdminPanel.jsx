@@ -115,9 +115,10 @@ export default function AdminPanel({ embedded = false }) {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 3000);
+    const interval = setInterval(fetchData, 2500);
     return () => clearInterval(interval);
   }, [soundEnabled]);
+
 
   const handleUpdateStatus = async (orderId, status, servingCode = null) => {
     setErrorMap((prev) => ({ ...prev, [orderId]: '' }));

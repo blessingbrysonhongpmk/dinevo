@@ -128,9 +128,10 @@ export default function UserMobilePanel({ embedded = false }) {
   useEffect(() => {
     fetchTables();
     fetchMenu();
-    const interval = setInterval(fetchTables, 3000);
+    const interval = setInterval(fetchTables, 2500);
     return () => clearInterval(interval);
   }, [fetchTables, fetchMenu]);
+
 
   const [searchParams] = useSearchParams();
   const urlTableCode = searchParams.get('table') || searchParams.get('tableCode');

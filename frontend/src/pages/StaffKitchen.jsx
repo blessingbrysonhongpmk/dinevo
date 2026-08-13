@@ -19,9 +19,10 @@ export default function StaffKitchen() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 4000);
+    const interval = setInterval(fetchOrders, 2500);
     return () => clearInterval(interval);
   }, []);
+
 
   const handleUpdateStatus = async (orderId, status, servingCode = null) => {
     setErrorMap((prev) => ({ ...prev, [orderId]: '' }));
