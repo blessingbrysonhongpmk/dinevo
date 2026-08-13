@@ -37,6 +37,17 @@ const api = axios.create({
   timeout: 15000 // 15 second timeout to prevent infinite loading screens
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('dinevo_token') : null;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -44,6 +55,7 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;
 

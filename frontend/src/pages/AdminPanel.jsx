@@ -90,14 +90,27 @@ export default function AdminPanel({ embedded = false }) {
   const fetchData = async () => {
     try {
       const [ordRes, tblRes, foodRes, analyticsRes] = await Promise.all([
-        api.get('/orders/restaurant/all').catch(() => ({ data: [] })),
+        api.get('/orders/restaurant/all').catch((e) => {
+          console.warn('Primary orders endpoint warning, trying fallback /orders:', e);
+          return api.get('/orders').catch(() => ({ data: [] }));
+        }),
         api.get('/tables').catch(() => ({ data: [] })),
         api.get('/foods').catch(() => ({ data: [] })),
         api.get('/orders/analytics').catch(() => ({ data: [] }))
       ]);
 
       const rawOrders = ordRes.data?.data || ordRes.data;
-      const newOrders = Array.isArray(rawOrders) ? rawOrders : [];
+      let newOrders = Array.isArray(rawOrders) ? rawOrders : [];
+      if (newOrders.length === 0) {
+        try {
+          const fallbackRes = await api.get('/orders');
+          const fbRaw = fallbackRes.data?.data || fallbackRes.data;
+          if (Array.isArray(fbRaw) && fbRaw.length > 0) {
+            newOrders = fbRaw;
+          }
+        } catch (e) { /* ignore */ }
+      }
+
       if (prevOrderCountRef.current > 0 && newOrders.length > prevOrderCountRef.current && soundEnabled) {
         playAudioAlert();
       }

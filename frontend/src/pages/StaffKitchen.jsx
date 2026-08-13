@@ -9,17 +9,22 @@ export default function StaffKitchen() {
   const [servingInputs, setServingInputs] = useState({});
   const [errorMap, setErrorMap] = useState({});
 
-  const fetchOrders = () => {
-    api
-      .get('/orders/restaurant/all')
-      .then((res) => {
-        const raw = res.data?.data || res.data;
-        setOrders(Array.isArray(raw) ? raw : []);
-      })
-
-      .catch((err) => console.error('Kitchen error:', err))
-      .finally(() => setLoading(false));
+  const fetchOrders = async () => {
+    try {
+      let res = await api.get('/orders/restaurant/all').catch(() => null);
+      let raw = res?.data?.data || res?.data;
+      if (!Array.isArray(raw) || raw.length === 0) {
+        res = await api.get('/orders').catch(() => null);
+        raw = res?.data?.data || res?.data;
+      }
+      setOrders(Array.isArray(raw) ? raw : []);
+    } catch (err) {
+      console.error('Kitchen error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   useEffect(() => {
     fetchOrders();
