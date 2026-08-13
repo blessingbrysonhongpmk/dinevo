@@ -280,15 +280,21 @@ export default function UserMobilePanel({ embedded = false }) {
   const cartCount = cart.reduce((sum, c) => sum + c.qty, 0);
 
   const handleExecutePaymentAndOrder = async (overrideMethod, extraOptions = {}) => {
-    if (cart.length === 0 || !selectedTable) return null;
+    if (cart.length === 0) return null;
+    let currentTable = selectedTable;
+    if (!currentTable) {
+      currentTable = tables[0] || { tableNumber: '01', code: 'DINEVO-T01' };
+      setSelectedTable(currentTable);
+    }
     setOrderPlacing(true);
     const chosenMethod = typeof overrideMethod === 'string' ? overrideMethod : (mobilePaymentMethod || 'UPI');
     try {
       const orderPayload = {
         restaurantId: sessionData?.restaurantId,
-        tableNumber: selectedTable.tableNumber,
-        tableCode: selectedTable.code,
+        tableNumber: currentTable.tableNumber,
+        tableCode: currentTable.code,
         sessionCode: sessionData?.sessionCode || 'DEMO',
+
         items: cart.map((c) => ({
           menuItem: c._id,
           name: c.name,
