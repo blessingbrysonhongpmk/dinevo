@@ -101,9 +101,8 @@ app.use(errorMiddleware);
 const PORT = process.env.PORT || 5000;
 let server;
 
-const startServer = async () => {
+const startServer = () => {
   try {
-    await connectDB();
     server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`DINEVO server running on port ${PORT}`);
     });
@@ -114,11 +113,17 @@ const startServer = async () => {
         process.exit(1);
       }
     });
+
+    // Asynchronously connect to MongoDB Atlas so HTTP server binds immediately on Render
+    connectDB().catch((err) => {
+      console.error('[DINEVO] DB Connection Error:', err.message);
+    });
   } catch (err) {
     console.error('Server startup error:', err);
     process.exit(1);
   }
 };
+
 
 const handleShutdown = (signal) => {
   if (server) {

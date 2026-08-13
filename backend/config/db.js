@@ -6,11 +6,13 @@ const connectDB = async () => {
   const targetUri = process.env.MONGO_URI;
 
   if (!targetUri) {
-    throw new Error('MONGO_URI is not defined in environment variables');
+    console.error('[DINEVO] CRITICAL WARNING: MONGO_URI is not defined in environment variables!');
+    dbStore.setConnected(false);
+    return false;
   }
 
   try {
-    console.log('DINEVO SERVER STARTING...');
+    console.log('DINEVO SERVER CONNECTING TO MONGODB...');
     await mongoose.connect(targetUri, {
       serverSelectionTimeoutMS: 15000,
       connectTimeoutMS: 15000,
@@ -28,13 +30,15 @@ const connectDB = async () => {
     } catch (seedErr) {
       console.warn('[dinevo] Seed warning:', seedErr.message);
     }
+    return true;
   } catch (err) {
     console.error('MongoDB Atlas connection failed:');
     console.error(err.message);
     dbStore.setConnected(false);
-    throw err;
+    return false;
   }
 };
+
 
 module.exports = connectDB;
 
