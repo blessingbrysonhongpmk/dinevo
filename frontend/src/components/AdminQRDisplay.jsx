@@ -189,16 +189,47 @@ export default function AdminQRDisplay({ table, onClose }) {
           <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(217,119,6,0.06)', borderRadius: '14px', border: '1px solid rgba(217,119,6,0.25)', textAlign: 'left' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <label style={{ fontSize: '0.74rem', color: 'var(--ink)', fontWeight: 800 }}>
-                🌐 Production Domain (WhatsApp & Remote Sharing):
+                🌐 Long-Distance Public Domain (WhatsApp & Worldwide):
               </label>
               <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 8px', borderRadius: '999px', background: targetUrl.startsWith('https://') ? 'var(--sage-tint)' : 'var(--gold-tint)', color: targetUrl.startsWith('https://') ? 'var(--sage-dark)' : 'var(--gold)' }}>
                 {targetUrl.startsWith('https://') ? '● PUBLIC PROD' : '● LOCAL DEV'}
               </span>
             </div>
+            
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = 'https://dinevo.vercel.app';
+                  setCustomHost(url);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('dinevo_public_domain', url);
+                  }
+                }}
+                style={{ flex: 1, padding: '6px 8px', background: 'var(--espresso)', color: '#FFF', border: 'none', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                🌐 Enforce Long-Distance Vercel Domain
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const lanIp = sessionStorage.getItem('dinevo_lan_ip') || 'localhost';
+                  const url = `http://${lanIp}:3000`;
+                  setCustomHost(url);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('dinevo_public_domain', url);
+                  }
+                }}
+                style={{ padding: '6px 8px', background: 'var(--cream-2)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                📱 Local Wi-Fi
+              </button>
+            </div>
+
             <div style={{ display: 'flex', gap: 6 }}>
               <input
                 type="text"
-                placeholder="e.g. https://dinevo.vercel.app"
+                placeholder="https://dinevo.vercel.app"
                 value={customHost}
                 onChange={(e) => {
                   setCustomHost(e.target.value);
@@ -222,10 +253,11 @@ export default function AdminQRDisplay({ table, onClose }) {
               </button>
             </div>
             <div style={{ fontSize: '0.7rem', color: '#666', marginTop: 6, lineHeight: 1.4 }}>
-              Set your production Vercel/domain URL here so QR codes work when photographed & sent via WhatsApp anywhere in the world!
+              Set to your public domain (e.g. <code>https://dinevo.vercel.app</code>) so QR code photos sent via WhatsApp work from anywhere on earth!
             </div>
           </div>
         </div>
+
 
 
 
