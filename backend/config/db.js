@@ -3,13 +3,14 @@ const dbStore = require('./dbStore');
 const { seedData } = require('../seed/seedHelper');
 
 const connectDB = async () => {
-  const targetUri = process.env.MONGO_URI;
+  const targetUri = process.env.MONGO_URI || process.env.MONGODB_URI;
 
   if (!targetUri) {
-    console.error('[DINEVO] CRITICAL WARNING: MONGO_URI is not defined in environment variables!');
+    console.error('[DINEVO] CRITICAL WARNING: Neither MONGO_URI nor MONGODB_URI is defined in environment variables!');
     dbStore.setConnected(false);
     return false;
   }
+
 
   try {
     console.log('DINEVO SERVER CONNECTING TO MONGODB...');
