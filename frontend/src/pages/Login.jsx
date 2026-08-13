@@ -34,8 +34,9 @@ export default function Login() {
       if (err.response) {
         setError(err.response.data?.message || 'Invalid email or password');
       } else if (err.request) {
-        setError(`Unable to connect to DINEVO backend server (${api.defaults.baseURL}). Please verify backend is running on port 5000.`);
+        setError(`Unable to connect to DINEVO backend server (${api.defaults.baseURL}). Please verify internet connection or backend status.`);
       } else {
+
         setError(err.message || 'Authentication failed');
       }
     } finally {
