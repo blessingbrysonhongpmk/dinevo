@@ -1,0 +1,10 @@
+{
+  "name": "dinevo-monorepo",
+  "version": "1.0.0",
+  "description": "DINEVO Restaurant Ordering Platform",
+  "private": true,
+  "scripts": {
+    "build": "cd backend && npm install",
+    "start": "cd backend && npm start"
+  }
+}
