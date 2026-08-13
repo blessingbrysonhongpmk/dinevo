@@ -511,13 +511,18 @@ async function seedData(forceReset = false) {
 
   const existing = await dbStore.countRestaurants();
   if (existing > 0 && !forceReset) {
-    const rest = (await dbStore.getRestaurants())[0];
-    if (rest) {
-      // Clear old menu and insert full 5-star menu
-      await dbStore.insertMenuItems(defaultItems.map((i) => ({ ...i, restaurant: rest._id })));
+    const itemCount = await dbStore.countMenuItems();
+    if (itemCount === 0) {
+      const rest = (await dbStore.getRestaurants())[0];
+      if (rest) {
+        await dbStore.insertMenuItems(defaultItems.map((i) => ({ ...i, restaurant: rest._id })));
+      }
+    } else {
+      console.log(`[dinevo] Atlas DB contains ${itemCount} clean unique food items. Skipping duplicate re-seed.`);
     }
     return;
   }
+
 
   if (forceReset) {
     await dbStore.clearAll();

@@ -74,16 +74,25 @@ export default function UserMobilePanel({ embedded = false }) {
         items = FALLBACK_MENU_ITEMS;
       }
 
-      setMenuItems(items);
-      const cats = ['All', ...new Set(items.map((i) => i.category).filter(Boolean))];
+      // Strict deduplication filter by food item name
+      const uniqueItems = items.filter((item, index, self) =>
+        index === self.findIndex((t) => (t.name || '').trim().toLowerCase() === (item.name || '').trim().toLowerCase())
+      );
+
+      setMenuItems(uniqueItems);
+      const cats = ['All', ...new Set(uniqueItems.map((i) => i.category).filter(Boolean))];
       setCategories(cats);
     } catch (err) {
       console.warn('Backend food API offline, loading instant fallback gourmet menu');
-      setMenuItems(FALLBACK_MENU_ITEMS);
-      const cats = ['All', ...new Set(FALLBACK_MENU_ITEMS.map((i) => i.category).filter(Boolean))];
+      const uniqueFallback = FALLBACK_MENU_ITEMS.filter((item, index, self) =>
+        index === self.findIndex((t) => (t.name || '').trim().toLowerCase() === (item.name || '').trim().toLowerCase())
+      );
+      setMenuItems(uniqueFallback);
+      const cats = ['All', ...new Set(uniqueFallback.map((i) => i.category).filter(Boolean))];
       setCategories(cats);
     }
   }, []);
+
 
   useEffect(() => {
     fetchTables();

@@ -25,11 +25,18 @@ export default function Menu() {
       .then((res) => {
         const rawData = res.data;
         const fetched = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
-        setItems(fetched.length > 0 ? fetched : FALLBACK_MENU_ITEMS);
+        const targetList = fetched.length > 0 ? fetched : FALLBACK_MENU_ITEMS;
+        const uniqueList = targetList.filter((item, index, self) =>
+          index === self.findIndex((t) => (t.name || '').trim().toLowerCase() === (item.name || '').trim().toLowerCase())
+        );
+        setItems(uniqueList);
       })
       .catch((err) => {
         console.warn('Failed to load menu from API, loading fallback gourmet items:', err);
-        setItems(FALLBACK_MENU_ITEMS);
+        const uniqueFallback = FALLBACK_MENU_ITEMS.filter((item, index, self) =>
+          index === self.findIndex((t) => (t.name || '').trim().toLowerCase() === (item.name || '').trim().toLowerCase())
+        );
+        setItems(uniqueFallback);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -37,17 +44,18 @@ export default function Menu() {
   const categories = useMemo(() => {
     const defaultCats = [
       'All',
-      '★ Signature',
-      '🌴 Kanyakumari Specials',
-      '🥤 Juices & Coolers',
-      '🍨 Desserts',
-      'Chicken',
-      'Burgers',
-      'Rice & Meals',
-      'Starters',
-      'Sides',
-      'Spicy'
+      'Signature',
+      'Arabian Mandhi',
+      'Royal Biryanis',
+      'Kanyakumari Specials',
+      'Starters & Tandoori',
+      'Burgers & Wraps',
+      'Continental Pastas',
+      'Juices & Coolers',
+      '5-Star Desserts',
+      'Soups & Beverages'
     ];
+
     return defaultCats;
   }, []);
 
