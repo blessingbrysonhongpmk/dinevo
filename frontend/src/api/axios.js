@@ -13,18 +13,13 @@ function getDynamicApiUrl() {
     return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
   }
 
-  // 2. Production Browser Environment (Vercel / Render / Cloud domain)
+  // 2. Production & Mobile Browser Environment (Vercel / Mobile IP / Cloud domain)
   if (typeof window !== 'undefined') {
     const { hostname } = window.location;
 
-    // If running on production Vercel or cloud domain, use Render production backend
-    if (hostname && (hostname.endsWith('.vercel.app') || hostname.endsWith('.render.com') || (hostname !== 'localhost' && hostname !== '127.0.0.1' && !/^\d+\.\d+\.\d+\.\d+$/.test(hostname)))) {
-      return RENDER_PRODUCTION_API_URL;
-    }
-
-    // If running on local LAN IP (e.g. 10.40.137.218:3000), point to local backend
+    // Mobile phones, Vercel, LAN IP or cloud domain -> use Render production backend
     if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return `http://${hostname}:5000/api`;
+      return RENDER_PRODUCTION_API_URL;
     }
   }
 
@@ -34,7 +29,7 @@ function getDynamicApiUrl() {
 
 const api = axios.create({
   baseURL: getDynamicApiUrl(),
-  timeout: 15000 // 15 second timeout to prevent infinite loading screens
+  timeout: 15000
 });
 
 api.interceptors.request.use(
@@ -50,11 +45,25 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    // If local request fails due to network error, retry automatically with production Render backend
+    if (!error.response && error.config && !error.config._retry && error.config.url) {
+      error.config._retry = true;
+      try {
+        const fallbackUrl = RENDER_PRODUCTION_API_URL + (error.config.url.startsWith('/') ? error.config.url : `/${error.config.url}`);
+        return await axios({
+          ...error.config,
+          url: fallbackUrl
+        });
+      } catch (fallbackErr) {
+        return Promise.reject(fallbackErr);
+      }
+    }
     console.warn('[DINEVO API Warning]', error?.config?.url, error?.message);
     return Promise.reject(error);
   }
 );
+
 
 
 export default api;
