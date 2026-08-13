@@ -319,10 +319,12 @@ export default function UserMobilePanel({ embedded = false }) {
           cardDetails: extraOptions.cardDetails
         });
         payData = payRes.data;
-        if (payData.receipt) {
+        if (payData && payData.receipt) {
           setCurrentReceipt(payData.receipt);
+          setShowReceiptModal(true);
         }
       } catch (payErr) {
+
         console.warn('Backend payment status creation error:', payErr);
       }
 

@@ -42,7 +42,7 @@ const dbStore = {
     isConnected = status;
   },
   isDbConnected() {
-    return isConnected && mongoose.connection.readyState === 1;
+    return mongoose.connection.readyState === 1 || isConnected;
   },
 
   // RESTAURANTS
@@ -54,7 +54,7 @@ const dbStore = {
   },
 
   async getRestaurantById(id) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await RestaurantModel.findById(id).lean();
     }
     return memoryDb.restaurants.find((r) => r._id.toString() === id.toString()) || null;
@@ -65,7 +65,7 @@ const dbStore = {
     const targetClean = cleanStr(code);
 
     let restaurants = [];
-    if (isConnected) {
+    if (this.isDbConnected()) {
       restaurants = await RestaurantModel.find().lean();
     } else {
       restaurants = memoryDb.restaurants;
@@ -89,6 +89,7 @@ const dbStore = {
 
     return restaurants[0];
   },
+
 
   async countRestaurants() {
     if (isConnected) {
