@@ -80,18 +80,49 @@ export default function UserMobilePanel({ embedded = false }) {
       );
 
       setMenuItems(uniqueItems);
-      const cats = ['All', ...new Set(uniqueItems.map((i) => i.category).filter(Boolean))];
-      setCategories(cats);
+      const categoryOrder = [
+        'All',
+        'Signature',
+        'Biryani',
+        'Mandi',
+        'Parotta & Gravy',
+        'Dosa & South Indian',
+        'Starters',
+        'Grills & Tandoor',
+        'Seafood',
+        'Kanyakumari Specials',
+        'Juices & Cool Drinks',
+        'Desserts'
+      ];
+      const rawCats = Array.from(new Set(uniqueItems.map((i) => i.category).filter(Boolean)));
+      const sortedCats = ['All', ...categoryOrder.filter(c => c !== 'All' && rawCats.includes(c)), ...rawCats.filter(c => !categoryOrder.includes(c))];
+      setCategories(sortedCats);
     } catch (err) {
       console.warn('Backend food API offline, loading instant fallback gourmet menu');
       const uniqueFallback = FALLBACK_MENU_ITEMS.filter((item, index, self) =>
         index === self.findIndex((t) => (t.name || '').trim().toLowerCase() === (item.name || '').trim().toLowerCase())
       );
       setMenuItems(uniqueFallback);
-      const cats = ['All', ...new Set(uniqueFallback.map((i) => i.category).filter(Boolean))];
-      setCategories(cats);
+      const categoryOrder = [
+        'All',
+        'Signature',
+        'Biryani',
+        'Mandi',
+        'Parotta & Gravy',
+        'Dosa & South Indian',
+        'Starters',
+        'Grills & Tandoor',
+        'Seafood',
+        'Kanyakumari Specials',
+        'Juices & Cool Drinks',
+        'Desserts'
+      ];
+      const rawCats = Array.from(new Set(uniqueFallback.map((i) => i.category).filter(Boolean)));
+      const sortedCats = ['All', ...categoryOrder.filter(c => c !== 'All' && rawCats.includes(c)), ...rawCats.filter(c => !categoryOrder.includes(c))];
+      setCategories(sortedCats);
     }
   }, []);
+
 
 
   useEffect(() => {

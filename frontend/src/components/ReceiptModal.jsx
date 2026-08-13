@@ -111,7 +111,7 @@ export default function ReceiptModal({ receipt, onClose }) {
                   {item.notes && <div style={{ fontSize: '0.75rem', color: '#777' }}>Note: {item.notes}</div>}
                 </div>
                 <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#111' }}>
-                  ₹{(item.price * item.quantity).toFixed(2)}
+                  ₹{Math.round(item.price * item.quantity).toLocaleString('en-IN')}
                 </div>
               </div>
             ))}
@@ -122,27 +122,28 @@ export default function ReceiptModal({ receipt, onClose }) {
         <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
             <span>Items Subtotal</span>
-            <span style={{ fontFamily: 'monospace' }}>₹{Number(receipt.subtotal).toFixed(2)}</span>
+            <span style={{ fontFamily: 'monospace' }}>₹{Math.round(Number(receipt.subtotal)).toLocaleString('en-IN')}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666', fontSize: '0.8rem' }}>
             <span>CGST (2.5%)</span>
-            <span style={{ fontFamily: 'monospace' }}>₹{Number(receipt.cgst || receipt.totalTax / 2).toFixed(2)}</span>
+            <span style={{ fontFamily: 'monospace' }}>₹{Math.round(Number(receipt.cgst || receipt.totalTax / 2)).toLocaleString('en-IN')}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#666', fontSize: '0.8rem' }}>
             <span>SGST (2.5%)</span>
-            <span style={{ fontFamily: 'monospace' }}>₹{Number(receipt.sgst || receipt.totalTax / 2).toFixed(2)}</span>
+            <span style={{ fontFamily: 'monospace' }}>₹{Math.round(Number(receipt.sgst || receipt.totalTax / 2)).toLocaleString('en-IN')}</span>
           </div>
           {receipt.tipAmount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#D35400', fontSize: '0.82rem', fontWeight: 700 }}>
               <span>Staff Courtesy Tip</span>
-              <span style={{ fontFamily: 'monospace' }}>+₹{Number(receipt.tipAmount).toFixed(2)}</span>
+              <span style={{ fontFamily: 'monospace' }}>+₹{Math.round(Number(receipt.tipAmount)).toLocaleString('en-IN')}</span>
             </div>
           )}
 
           <div style={{ borderTop: '2px solid #222', paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 900, color: '#0F0C1B' }}>
             <span>TOTAL PAID</span>
-            <span style={{ fontFamily: 'monospace', color: '#C0392B' }}>₹{Number(receipt.grandTotal).toFixed(2)}</span>
+            <span style={{ fontFamily: 'monospace', color: '#C0392B' }}>₹{Math.round(Number(receipt.grandTotal)).toLocaleString('en-IN')}</span>
           </div>
+
         </div>
 
         {/* TRANSACTION UTR FOOTER */}
