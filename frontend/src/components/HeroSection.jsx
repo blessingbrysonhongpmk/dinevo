@@ -127,14 +127,14 @@ export default function HeroSection({ session }) {
             </div>
 
             {/* Bottom 4-step process bar */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'wrap', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.15)', fontSize: '0.85rem', color: 'rgba(250,246,240,0.8)' }}>
-              <span>📱 Scan Table QR</span>
-              <span>➔</span>
-              <span>🍲 Choose Food</span>
-              <span>➔</span>
-              <span>💳 Pay Securely</span>
-              <span>➔</span>
-              <span>👑 We Serve You</span>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.12)', fontSize: '0.85rem', color: 'rgba(250,246,240,0.85)', fontWeight: 600 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>1. Scan Table QR</span>
+              <span style={{ opacity: 0.5 }}>→</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>2. Select Gourmet Food</span>
+              <span style={{ opacity: 0.5 }}>→</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>3. Pay Securely</span>
+              <span style={{ opacity: 0.5 }}>→</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>4. Freshly Served</span>
             </div>
           </div>
         </div>
@@ -143,15 +143,21 @@ export default function HeroSection({ session }) {
       {/* SCAN EXPLANATION MODAL (ON DESKTOP) */}
       {showQrModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', padding: '20px' }}>
-          <div style={{ background: '#FFFFFF', borderRadius: '24px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center', color: '#1A1721', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 12 }}>📱</div>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: 10 }}>SCAN TABLE 01 QR CODE</h3>
-            <p style={{ fontSize: '0.92rem', color: '#555555', lineHeight: 1.5, marginBottom: 16 }}>
+          <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center', color: '#18151E', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+              <QrIcon width={42} height={42} style={{ color: 'var(--gold)' }} />
+            </div>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: 10, fontFamily: 'var(--font-display)' }}>SCAN TABLE 01 QR CODE</h3>
+            <p style={{ fontSize: '0.9rem', color: '#555555', lineHeight: 1.5, marginBottom: 16 }}>
               Use your phone camera to scan the Table 01 QR code displayed on the front page to launch your mobile session directly.
             </p>
-            <div style={{ background: '#FAF6F0', padding: 12, borderRadius: 12, border: '1px solid #E5DECF', marginBottom: 20 }}>
+            <div style={{ background: '#FAF6F0', padding: 14, borderRadius: 14, border: '1px solid #E5DECF', marginBottom: 16 }}>
               <img src={qrImageSrc} alt="Table 01 QR" style={{ width: '160px', height: '160px', margin: '0 auto', display: 'block' }} />
+              <div style={{ fontSize: '0.72rem', color: '#555', marginTop: 8, wordBreak: 'break-all', fontFamily: 'monospace' }}>
+                🔗 {sampleQrUrl}
+              </div>
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Link to="/user" className="btn-dv btn-gold btn-block" onClick={() => setShowQrModal(false)}>
                 Open Customer User Panel
@@ -163,6 +169,7 @@ export default function HeroSection({ session }) {
           </div>
         </div>
       )}
+
     </section>
   );
 }

@@ -5,6 +5,8 @@ import FoodCard from '../components/FoodCard';
 import { SearchIcon, FlameIcon, StarIcon } from '../components/Icons';
 import { useCart } from '../context/CartContext';
 
+import { FALLBACK_MENU_ITEMS } from '../data/fallbackMenu';
+
 export default function Menu() {
   const { session } = useCart();
   const [items, setItems] = useState([]);
@@ -21,11 +23,13 @@ export default function Menu() {
     api
       .get('/foods')
       .then((res) => {
-        setItems(res.data);
+        const rawData = res.data;
+        const fetched = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []);
+        setItems(fetched.length > 0 ? fetched : FALLBACK_MENU_ITEMS);
       })
       .catch((err) => {
-        console.error('Failed to load menu:', err);
-        setError(true);
+        console.warn('Failed to load menu from API, loading fallback gourmet items:', err);
+        setItems(FALLBACK_MENU_ITEMS);
       })
       .finally(() => setLoading(false));
   }, []);

@@ -12,24 +12,24 @@ exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
-    // Check in-memory fallback first
-    if (email.toLowerCase() === 'admin@dinevo.com' && password === 'dinevo123') {
-      const token = jwt.sign(
-        { id: 'admin-default', email: 'admin@dinevo.com', role: 'admin', name: 'DINEVO Admin' },
-        JWT_SECRET,
-        { expiresIn: '24h' }
-      );
-      return res.json({
-        success: true,
-        token,
-        user: { id: 'admin-default', email: 'admin@dinevo.com', role: 'admin', name: 'DINEVO Admin' }
-      });
-    }
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
-    // Try MongoDB user lookup
+    // 1. Try MongoDB Atlas user lookup first
     try {
-      const user = await UserModel.findOne({ email: email.toLowerCase() });
-      if (user && (await user.comparePassword(password))) {
+      let user = await UserModel.findOne({ email: cleanEmail });
+      
+      // Auto-create/sync default admin if not in DB yet
+      if (!user && cleanEmail === 'admin@dinevo.com' && cleanPassword === 'dinevo123') {
+        user = await UserModel.create({
+          email: 'admin@dinevo.com',
+          password: 'dinevo123',
+          name: 'DINEVO Admin',
+          role: 'admin'
+        });
+      }
+
+      if (user && (await user.comparePassword(cleanPassword))) {
         const token = jwt.sign(
           { id: user._id, email: user.email, role: user.role, name: user.name },
           JWT_SECRET,
@@ -42,7 +42,21 @@ exports.login = async (req, res) => {
         });
       }
     } catch (dbErr) {
-      // DB not connected, fallback handled above
+      console.warn('[dinevo auth warning]', dbErr.message);
+    }
+
+    // 2. Direct credential match fallback
+    if (cleanEmail === 'admin@dinevo.com' && cleanPassword === 'dinevo123') {
+      const token = jwt.sign(
+        { id: 'admin-default', email: 'admin@dinevo.com', role: 'admin', name: 'DINEVO Admin' },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      return res.json({
+        success: true,
+        token,
+        user: { id: 'admin-default', email: 'admin@dinevo.com', role: 'admin', name: 'DINEVO Admin' }
+      });
     }
 
     return res.status(401).json({ success: false, message: 'Invalid email or password' });
@@ -50,6 +64,7 @@ exports.login = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // GET /api/auth/me
 exports.getMe = async (req, res) => {

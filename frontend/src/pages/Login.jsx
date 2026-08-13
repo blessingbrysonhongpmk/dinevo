@@ -13,13 +13,16 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!email.trim() || !password.trim()) {
-      setError('Please enter email and password');
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      setError('Please enter both email and password');
       return;
     }
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email: cleanEmail, password: cleanPassword });
       if (res.data.success) {
         localStorage.setItem('dinevo_token', res.data.token);
         localStorage.setItem('dinevo_user', JSON.stringify(res.data.user));
@@ -28,11 +31,18 @@ export default function Login() {
         setError(res.data.message || 'Login failed');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+      if (err.response) {
+        setError(err.response.data?.message || 'Invalid email or password');
+      } else if (err.request) {
+        setError(`Unable to connect to DINEVO backend server (${api.defaults.baseURL}). Please verify backend is running on port 5000.`);
+      } else {
+        setError(err.message || 'Authentication failed');
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="dv-login-page">

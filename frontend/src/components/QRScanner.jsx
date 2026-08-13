@@ -353,9 +353,12 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
       )}
 
       {(cameraState === 'denied' || cameraState === 'error' || cameraState === 'unsupported') && (
-        <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(230,57,70,0.12)', borderRadius: '12px', border: '1px solid rgba(230,57,70,0.3)' }}>
-          <p style={{ fontSize: '0.82rem', color: '#FFD1D1', margin: 0 }}>
+        <div style={{ marginTop: '14px', padding: '14px', background: 'rgba(230,57,70,0.12)', borderRadius: '14px', border: '1px solid rgba(230,57,70,0.3)' }}>
+          <p style={{ fontSize: '0.84rem', color: '#FFD1D1', margin: 0, fontWeight: 600 }}>
             {errorMessage}
+          </p>
+          <p style={{ fontSize: '0.78rem', color: '#AAA', marginTop: 4 }}>
+            💡 Tip: Mobile browsers block camera on unencrypted HTTP URLs. Upload a QR photo or select your table below!
           </p>
         </div>
       )}
@@ -381,7 +384,8 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
             cursor: 'pointer',
             padding: '12px 18px',
             fontSize: '0.9rem',
-            fontWeight: 800
+            fontWeight: 800,
+            boxShadow: '0 6px 18px rgba(247,127,0,0.3)'
           }}
         >
           {uploading ? (
@@ -391,17 +395,49 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose }) {
             </>
           ) : (
             <>
-              📷 Upload QR Photo / Gallery Image
+              📷 Upload QR Photo from Gallery
             </>
           )}
         </label>
+      </div>
+
+      {/* QUICK TABLE PICKER (FOR MOBILE / HTTP CAMERA FALLBACK) */}
+      <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px dashed rgba(255,255,255,0.15)', textAlign: 'left' }}>
+        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#FFD700', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          ⚡ Or Select Dining Table Directly:
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+          {['01', '02', '03', '04', '05', '06', '07', '08'].map((num) => (
+            <button
+              key={num}
+              type="button"
+              onClick={() => {
+                const code = `DINEVO-T${num}`;
+                if (onScanSuccess) onScanSuccess(code);
+              }}
+              style={{
+                padding: '8px 4px',
+                borderRadius: '10px',
+                border: '1px solid rgba(255,215,0,0.3)',
+                background: 'rgba(255,215,0,0.12)',
+                color: '#FFF',
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                textAlign: 'center'
+              }}
+            >
+              T-{num}
+            </button>
+          ))}
+        </div>
       </div>
 
       {onClose && (
         <button
           type="button"
           className="btn-dv btn-outline btn-block"
-          style={{ marginTop: '12px' }}
+          style={{ marginTop: '14px', borderColor: 'rgba(255,255,255,0.2)', color: '#AAA' }}
           onClick={onClose}
         >
           Close Scanner

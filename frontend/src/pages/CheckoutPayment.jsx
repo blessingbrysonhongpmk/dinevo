@@ -54,23 +54,27 @@ export default function CheckoutPayment() {
     }
   };
 
-  const handlePaymentVerified = async () => {
-    if (!pendingOrder) return;
+  const handlePaymentVerified = async (selectedMethod, extraOptions = {}) => {
+    if (!pendingOrder) return null;
+    const finalMethod = selectedMethod || paymentMethod || 'UPI';
     try {
       const payRes = await api.post('/payments/create', {
         orderId: pendingOrder._id,
-        method: paymentMethod
+        method: finalMethod,
+        tipAmount: extraOptions.tipAmount || 0,
+        bankName: extraOptions.bankName,
+        cardDetails: extraOptions.cardDetails,
+        customerPhone: phoneInput || customerData?.phoneNumber
       });
 
       if (payRes.data.success || payRes.data.order) {
-        if (customerData) {
+        if (customerData || phoneInput) {
           try {
-            await api.post('/customers/add-points', { phone: customerData.phoneNumber, pointsToAdd: Math.floor(pendingOrder.total) });
+            await api.post('/customers/add-points', { phone: customerData?.phoneNumber || phoneInput, pointsToAdd: Math.floor(pendingOrder.total) });
           } catch(e) { console.error('Failed to add points', e) }
         }
         clearCart();
-        setShowPaymentModal(false);
-        navigate(`/order/${pendingOrder._id}/confirmation`);
+        return payRes.data;
       } else {
         throw new Error('Payment verification failed on backend');
       }
@@ -169,10 +173,10 @@ export default function CheckoutPayment() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {[
-              { id: 'UPI', title: 'UPI / QR Scan', desc: 'Scan and pay securely via GPay / PhonePe / Paytm', active: true },
-              { id: 'CARD', title: 'Credit / Debit Card', desc: 'Visa / Mastercard / RuPay (Coming Soon)', active: false },
-              { id: 'CASH', title: 'Cash at Counter', desc: 'Pay directly at billing counter', active: true },
-              { id: 'NET_BANKING', title: 'Net Banking', desc: 'All major Indian banks (Coming Soon)', active: false }
+              { id: 'UPI', title: 'Google Pay / PhonePe / UPI QR', desc: 'Instant 1-tap app launch or scan QR code', active: true },
+              { id: 'CARD', title: 'Credit / Debit Card', desc: 'Visa, Mastercard, RuPay & international cards', active: true },
+              { id: 'NET_BANKING', title: 'Net Banking', desc: 'HDFC, ICICI, SBI, Axis, Kotak & 50+ banks', active: true },
+              { id: 'CASH', title: 'Cash at Counter', desc: 'Pay directly at billing desk upon serving', active: true }
             ].map((m) => (
               <label
                 key={m.id}
@@ -184,15 +188,15 @@ export default function CheckoutPayment() {
                   borderRadius: 'var(--r-md)',
                   border: '2px solid ' + (paymentMethod === m.id ? 'var(--burgundy)' : 'var(--line)'),
                   background: paymentMethod === m.id ? 'var(--burgundy-tint)' : 'var(--surface)',
-                  cursor: m.active ? 'pointer' : 'not-allowed',
-                  opacity: m.active ? 1 : 0.65
+                  cursor: 'pointer',
+                  opacity: 1
                 }}
-                onClick={() => m.active && setPaymentMethod(m.id)}
+                onClick={() => setPaymentMethod(m.id)}
               >
-                <input type="radio" checked={paymentMethod === m.id} disabled={!m.active} onChange={() => {}} />
+                <input type="radio" checked={paymentMethod === m.id} onChange={() => {}} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: '0.98rem', color: 'var(--ink)' }}>
-                    {m.title} {!m.active && <small style={{ color: 'var(--ink-faint)', fontWeight: 400 }}>(Disabled)</small>}
+                    {m.title}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', marginTop: 2 }}>{m.desc}</div>
                 </div>
@@ -251,6 +255,7 @@ export default function CheckoutPayment() {
       {showPaymentModal && pendingOrder && (
         <PaymentModal
           order={pendingOrder}
+          initialMethod={paymentMethod}
           onPaymentSuccess={handlePaymentVerified}
           onClose={() => setShowPaymentModal(false)}
         />

@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheckIcon, CheckIcon } from './Icons';
+import ReceiptModal from './ReceiptModal';
 
-export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
-  const [activeTab, setActiveTab] = useState('upi'); // 'upi', 'qr', 'card', 'banking'
+export default function PaymentModal({ order, initialMethod = 'UPI', onPaymentSuccess, onClose }) {
+  const mapMethodToTab = (m) => {
+    if (m === 'CARD') return 'card';
+    if (m === 'NET_BANKING') return 'banking';
+    if (m === 'CASH') return 'cash';
+    if (m === 'QR') return 'qr';
+    return 'upi';
+  };
+
+  const [activeTab, setActiveTab] = useState(mapMethodToTab(initialMethod)); // 'upi', 'qr', 'card', 'banking', 'cash'
+  const [tipAmount, setTipAmount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [verifying, setVerifying] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
   const [selectedBank, setSelectedBank] = useState('HDFC Bank');
   const [cardForm, setCardForm] = useState({ number: '', expiry: '', cvv: '', name: '' });
+  const [completedReceipt, setCompletedReceipt] = useState(null);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -28,25 +39,57 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleConfirmPayment = async () => {
+  const totalBaseAmount = Number(order?.total || order?.totalAmount || 0);
+  const finalGrandTotal = Math.round((totalBaseAmount + Number(tipAmount || 0)) * 100) / 100;
+
+  const noteText = encodeURIComponent(`DINEVO Table ${order?.tableNumber || '01'} Order #${order?.orderNumber || '1001'}`);
+  const upiDeepLink = `upi://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${finalGrandTotal}&cu=INR&tn=${noteText}`;
+  const gpayLink = `gpay://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${finalGrandTotal}&cu=INR&tn=${noteText}`;
+  const phonepeLink = `phonepe://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${finalGrandTotal}&cu=INR&tn=${noteText}`;
+  const paytmLink = `paytmmp://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${finalGrandTotal}&cu=INR&tn=${noteText}`;
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&margin=10&data=${encodeURIComponent(upiDeepLink)}`;
+
+  const detectCardType = (num) => {
+    const clean = num.replace(/\D/g, '');
+    if (/^4/.test(clean)) return 'VISA 💳';
+    if (/^5[1-5]/.test(clean)) return 'MASTERCARD 💳';
+    if (/^6[0-9]/.test(clean)) return 'RUPAY 💳';
+    if (/^3[47]/.test(clean)) return 'AMEX 💳';
+    return 'CREDIT / DEBIT CARD 💳';
+  };
+
+  const handleConfirmPayment = async (overrideMethod) => {
     setVerifying(true);
     setError('');
+    const chosenMethod = overrideMethod || (activeTab === 'card' ? 'CARD' : activeTab === 'banking' ? 'NET_BANKING' : activeTab === 'cash' ? 'CASH' : 'UPI');
+
     try {
-      await onPaymentSuccess();
+      const resData = await onPaymentSuccess(chosenMethod, {
+        tipAmount,
+        bankName: selectedBank,
+        cardDetails: cardForm
+      });
+      if (resData?.receipt) {
+        setCompletedReceipt(resData.receipt);
+      }
     } catch (err) {
       setError(err.message || 'Payment verification failed. Please try again.');
       setVerifying(false);
     }
   };
 
-  const totalAmount = order?.total || order?.totalAmount || 0;
-  const noteText = encodeURIComponent(`DINEVO Table ${order?.tableNumber || '01'} Order #${order?.orderNumber || '1001'}`);
-  const upiDeepLink = `upi://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${totalAmount}&cu=INR&tn=${noteText}`;
-  const gpayLink = `gpay://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${totalAmount}&cu=INR&tn=${noteText}`;
-  const phonepeLink = `phonepe://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${totalAmount}&cu=INR&tn=${noteText}`;
-  const paytmLink = `paytmmp://pay?pa=dinevo@upi&pn=DINEVO%20Resort&am=${totalAmount}&cu=INR&tn=${noteText}`;
+  const handleRazorpaySdkCheckout = () => {
+    setVerifying(true);
+    // Simulate Razorpay SDK modal trigger
+    setTimeout(() => {
+      handleConfirmPayment('RAZORPAY');
+    }, 1200);
+  };
 
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&margin=10&data=${encodeURIComponent(upiDeepLink)}`;
+  if (completedReceipt) {
+    return <ReceiptModal receipt={completedReceipt} onClose={onClose} />;
+  }
 
   return (
     <div
@@ -58,22 +101,22 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
-        backgroundColor: 'rgba(15, 12, 18, 0.82)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        backgroundColor: 'rgba(12, 10, 18, 0.88)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         animation: 'fadeIn 0.25s ease'
       }}
     >
       <div
         style={{
           width: '100%',
-          maxWidth: '460px',
-          background: '#181522',
+          maxWidth: '480px',
+          background: 'linear-gradient(170deg, #1C182A 0%, #120F1D 100%)',
           color: '#FAF6F0',
           borderRadius: '28px',
           padding: '28px 24px',
-          boxShadow: '0 30px 70px rgba(0,0,0,0.6)',
-          border: '2px solid var(--gold, #F77F00)',
+          boxShadow: '0 30px 80px rgba(0,0,0,0.8)',
+          border: '1px solid rgba(255, 215, 0, 0.35)',
           textAlign: 'center',
           maxHeight: '92vh',
           overflowY: 'auto'
@@ -95,100 +138,148 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
             marginBottom: '12px'
           }}
         >
-          <ShieldCheckIcon width={16} height={16} /> 256-BIT ENCRYPTED POS GATEWAY
+          <ShieldCheckIcon width={16} height={16} /> 256-BIT POS ENCRYPTED GATEWAY
         </div>
 
         <h2 style={{ fontSize: '1.5rem', color: '#FFFFFF', margin: '4px 0 2px', fontWeight: 900 }}>
           Table {order?.tableNumber || '01'} Express Checkout
         </h2>
-        <p style={{ fontSize: '0.85rem', color: '#AAA', marginBottom: '16px' }}>
-          Order ID: <strong style={{ color: 'var(--gold, #F77F00)' }}>#{order?.orderNumber || 'DINEVO-9481'}</strong>
+        <p style={{ fontSize: '0.84rem', color: '#AAA', marginBottom: '16px' }}>
+          Order ID: <strong style={{ color: 'var(--gold, #FFD700)' }}>#{order?.orderNumber || 'DINEVO-9481'}</strong>
         </p>
 
         {/* AMOUNT DUE CARD */}
         <div
           style={{
-            background: 'linear-gradient(135deg, #252033 0%, #1D1828 100%)',
-            border: '1px solid rgba(255,255,255,0.15)',
+            background: 'linear-gradient(135deg, #272138 0%, #1E192D 100%)',
+            border: '1px solid rgba(255,215,0,0.25)',
             borderRadius: '20px',
             padding: '16px',
-            marginBottom: '20px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
+            marginBottom: '18px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.3)'
           }}
         >
-          <div style={{ fontSize: '0.78rem', color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
-            TOTAL AMOUNT DUE
+          <div style={{ fontSize: '0.75rem', color: '#AAA', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
+            TOTAL AMOUNT PAYABLE
           </div>
-          <div style={{ fontFamily: 'var(--font-display, serif)', fontSize: '2.4rem', fontWeight: 900, color: 'var(--gold, #F77F00)', marginTop: '2px' }}>
-            ₹{Number(totalAmount).toFixed(2)}
+          <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--gold, #FFD700)', marginTop: '2px', fontFamily: 'monospace' }}>
+            ₹{finalGrandTotal.toFixed(2)}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: '#888', marginTop: 4 }}>
+            Subtotal: ₹{totalBaseAmount.toFixed(2)} {tipAmount > 0 && `+ Tip: ₹${tipAmount}`}
+          </div>
+        </div>
+
+        {/* STAFF COURTESY TIP SELECTOR */}
+        <div style={{ background: 'rgba(255,255,255,0.04)', padding: '10px 14px', borderRadius: 16, marginBottom: 18, textAlign: 'left', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ fontSize: '0.76rem', color: '#FFD700', fontWeight: 800, textTransform: 'uppercase', marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+            <span>💖 Add Staff Tip (Optional)</span>
+            {tipAmount > 0 && <span style={{ color: '#00E699' }}>Added ₹{tipAmount}</span>}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+            {[0, 30, 50, 100].map((amount) => (
+              <button
+                key={amount}
+                type="button"
+                onClick={() => setTipAmount(amount)}
+                style={{
+                  padding: '6px',
+                  borderRadius: 10,
+                  border: tipAmount === amount ? '1px solid #FFD700' : '1px solid rgba(255,255,255,0.15)',
+                  background: tipAmount === amount ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)',
+                  color: tipAmount === amount ? '#FFD700' : '#FFF',
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                {amount === 0 ? 'No Tip' : `₹${amount}`}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* PAYMENT METHOD TABS */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 6, marginBottom: 18, background: '#110F18', padding: 4, borderRadius: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4, marginBottom: 18, background: '#110E1A', padding: 4, borderRadius: 14 }}>
           <button
             type="button"
             onClick={() => setActiveTab('upi')}
             style={{
-              padding: '8px 4px',
+              padding: '8px 2px',
               borderRadius: 10,
               border: 'none',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 800,
               cursor: 'pointer',
-              background: activeTab === 'upi' ? 'var(--gold, #F77F00)' : 'transparent',
+              background: activeTab === 'upi' ? 'var(--gold, #FFD700)' : 'transparent',
               color: activeTab === 'upi' ? '#000' : '#AAA'
             }}
           >
-            🚀 One-Tap
+            🚀 Apps
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('qr')}
             style={{
-              padding: '8px 4px',
+              padding: '8px 2px',
               borderRadius: 10,
               border: 'none',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 800,
               cursor: 'pointer',
-              background: activeTab === 'qr' ? 'var(--gold, #F77F00)' : 'transparent',
+              background: activeTab === 'qr' ? 'var(--gold, #FFD700)' : 'transparent',
               color: activeTab === 'qr' ? '#000' : '#AAA'
             }}
           >
-            📷 QR Scan
+            📷 QR
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('card')}
             style={{
-              padding: '8px 4px',
+              padding: '8px 2px',
               borderRadius: 10,
               border: 'none',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 800,
               cursor: 'pointer',
-              background: activeTab === 'card' ? 'var(--gold, #F77F00)' : 'transparent',
+              background: activeTab === 'card' ? 'var(--gold, #FFD700)' : 'transparent',
               color: activeTab === 'card' ? '#000' : '#AAA'
             }}
           >
-            💳 Cards
+            💳 Card
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('banking')}
             style={{
-              padding: '8px 4px',
+              padding: '8px 2px',
               borderRadius: 10,
               border: 'none',
-              fontSize: '0.75rem',
+              fontSize: '0.72rem',
               fontWeight: 800,
               cursor: 'pointer',
-              background: activeTab === 'banking' ? 'var(--gold, #F77F00)' : 'transparent',
+              background: activeTab === 'banking' ? 'var(--gold, #FFD700)' : 'transparent',
               color: activeTab === 'banking' ? '#000' : '#AAA'
             }}
           >
-            🏛️ Net Bank
+            🏛️ Banks
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('cash')}
+            style={{
+              padding: '8px 2px',
+              borderRadius: 10,
+              border: 'none',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              background: activeTab === 'cash' ? 'var(--gold, #FFD700)' : 'transparent',
+              color: activeTab === 'cash' ? '#000' : '#AAA'
+            }}
+          >
+            💵 Cash
           </button>
         </div>
 
@@ -208,10 +299,10 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
                 textDecoration: 'none',
                 fontWeight: 800,
                 fontSize: '0.92rem',
-                boxShadow: '0 6px 18px rgba(66,133,244,0.3)'
+                boxShadow: '0 6px 18px rgba(66,133,244,0.35)'
               }}
             >
-              <span>Pay with Google Pay</span>
+              <span>Pay with Google Pay (GPay)</span>
               <span style={{ fontSize: '1.2rem' }}>➔</span>
             </a>
 
@@ -228,7 +319,7 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
                 textDecoration: 'none',
                 fontWeight: 800,
                 fontSize: '0.92rem',
-                boxShadow: '0 6px 18px rgba(95,37,159,0.3)'
+                boxShadow: '0 6px 18px rgba(95,37,159,0.35)'
               }}
             >
               <span>Pay with PhonePe</span>
@@ -248,7 +339,7 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
                 textDecoration: 'none',
                 fontWeight: 900,
                 fontSize: '0.92rem',
-                boxShadow: '0 6px 18px rgba(0,186,242,0.3)'
+                boxShadow: '0 6px 18px rgba(0,186,242,0.35)'
               }}
             >
               <span>Pay with Paytm UPI</span>
@@ -271,13 +362,13 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
                 fontSize: '0.88rem'
               }}
             >
-              <span>BHIM UPI / Any Other App</span>
+              <span>BHIM UPI / Any Mobile Bank App</span>
               <span style={{ fontSize: '1.1rem' }}>➔</span>
             </a>
           </div>
         )}
 
-        {/* TAB 2: QR CODE SCANNER */}
+        {/* TAB 2: DYNAMIC QR CODE */}
         {activeTab === 'qr' && (
           <div style={{ marginBottom: 20 }}>
             <div
@@ -285,10 +376,10 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
                 background: '#FFFFFF',
                 padding: '16px',
                 borderRadius: '20px',
-                border: '3px solid var(--gold, #F77F00)',
+                border: '3px solid var(--gold, #FFD700)',
                 display: 'inline-block',
                 margin: '0 auto 12px',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.3)'
+                boxShadow: '0 12px 30px rgba(0,0,0,0.4)'
               }}
             >
               <img
@@ -297,7 +388,7 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
                 style={{ width: '200px', height: '200px', display: 'block', borderRadius: '8px' }}
               />
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#AAA' }}>
+            <div style={{ fontSize: '0.82rem', color: '#AAA' }}>
               Scan QR code using GPay, PhonePe, Paytm, or Mobile Banking App
             </div>
           </div>
@@ -306,45 +397,48 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
         {/* TAB 3: CREDIT / DEBIT CARD */}
         {activeTab === 'card' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', marginBottom: 20, fontSize: '0.82rem' }}>
+            <div style={{ color: '#FFD700', fontSize: '0.78rem', fontWeight: 800 }}>
+              {detectCardType(cardForm.number)}
+            </div>
             <div>
-              <label style={{ color: '#FFD700', fontWeight: 700 }}>Cardholder Name</label>
+              <label style={{ color: '#AAA', fontWeight: 700 }}>Cardholder Name</label>
               <input
                 className="dv-input"
                 placeholder="Name on card"
-                style={{ background: '#221F2D', color: '#FFF', borderColor: 'rgba(255,255,255,0.2)' }}
+                style={{ background: '#13111A', color: '#FFF', borderColor: 'rgba(255,255,255,0.18)' }}
                 value={cardForm.name}
                 onChange={(e) => setCardForm({ ...cardForm, name: e.target.value })}
               />
             </div>
             <div>
-              <label style={{ color: '#FFD700', fontWeight: 700 }}>Card Number</label>
+              <label style={{ color: '#AAA', fontWeight: 700 }}>Card Number</label>
               <input
                 className="dv-input"
                 placeholder="4532 •••• •••• 8912"
-                style={{ background: '#221F2D', color: '#FFF', borderColor: 'rgba(255,255,255,0.2)' }}
+                style={{ background: '#13111A', color: '#FFF', borderColor: 'rgba(255,255,255,0.18)' }}
                 value={cardForm.number}
                 onChange={(e) => setCardForm({ ...cardForm, number: e.target.value })}
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <div>
-                <label style={{ color: '#FFD700', fontWeight: 700 }}>Expiry Date</label>
+                <label style={{ color: '#AAA', fontWeight: 700 }}>Expiry Date</label>
                 <input
                   className="dv-input"
                   placeholder="MM/YY"
-                  style={{ background: '#221F2D', color: '#FFF', borderColor: 'rgba(255,255,255,0.2)' }}
+                  style={{ background: '#13111A', color: '#FFF', borderColor: 'rgba(255,255,255,0.18)' }}
                   value={cardForm.expiry}
                   onChange={(e) => setCardForm({ ...cardForm, expiry: e.target.value })}
                 />
               </div>
               <div>
-                <label style={{ color: '#FFD700', fontWeight: 700 }}>CVV / CVC</label>
+                <label style={{ color: '#AAA', fontWeight: 700 }}>CVV / CVC</label>
                 <input
                   type="password"
                   maxLength={4}
                   className="dv-input"
                   placeholder="•••"
-                  style={{ background: '#221F2D', color: '#FFF', borderColor: 'rgba(255,255,255,0.2)' }}
+                  style={{ background: '#13111A', color: '#FFF', borderColor: 'rgba(255,255,255,0.18)' }}
                   value={cardForm.cvv}
                   onChange={(e) => setCardForm({ ...cardForm, cvv: e.target.value })}
                 />
@@ -356,10 +450,10 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
         {/* TAB 4: NET BANKING */}
         {activeTab === 'banking' && (
           <div style={{ textAlign: 'left', marginBottom: 20 }}>
-            <label style={{ color: '#FFD700', fontWeight: 700, fontSize: '0.82rem' }}>Select Net Banking Bank</label>
+            <label style={{ color: '#FFD700', fontWeight: 700, fontSize: '0.82rem' }}>Select Net Banking Partner</label>
             <select
               className="dv-input"
-              style={{ background: '#221F2D', color: '#FFF', borderColor: 'rgba(255,255,255,0.2)', marginTop: 6 }}
+              style={{ background: '#13111A', color: '#FFF', borderColor: 'rgba(255,255,255,0.18)', marginTop: 6 }}
               value={selectedBank}
               onChange={(e) => setSelectedBank(e.target.value)}
             >
@@ -368,32 +462,45 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
               <option value="State Bank of India">State Bank of India (SBI)</option>
               <option value="Axis Bank">Axis Bank NetBanking</option>
               <option value="Kotak Mahindra">Kotak Mahindra Bank</option>
+              <option value="Punjab National Bank">Punjab National Bank (PNB)</option>
             </select>
           </div>
         )}
 
-        {/* UPI VPA INFO & COPY BUTTON */}
+        {/* TAB 5: CASH AT COUNTER */}
+        {activeTab === 'cash' && (
+          <div style={{ background: '#181524', padding: '16px', borderRadius: '16px', marginBottom: 20, border: '1px solid rgba(255,215,0,0.3)', textAlign: 'left' }}>
+            <div style={{ color: '#FFD700', fontWeight: 800, fontSize: '0.92rem', marginBottom: 6 }}>
+              💵 Cash Payment at Table / Counter
+            </div>
+            <div style={{ color: '#AAA', fontSize: '0.82rem', lineHeight: 1.4 }}>
+              Your order will be transmitted directly to the kitchen. You can pay cash to the waiter upon serving or at the cashier desk.
+            </div>
+          </div>
+        )}
+
+        {/* VPA COPY */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#221F2D',
+            background: 'rgba(255,255,255,0.04)',
             padding: '10px 14px',
             borderRadius: '12px',
             fontSize: '0.82rem',
             marginBottom: '16px',
-            border: '1px solid rgba(255,255,255,0.1)'
+            border: '1px solid rgba(255,255,255,0.08)'
           }}
         >
-          <span style={{ color: '#AAA' }}>VPA ID: <strong style={{ color: '#FFF' }}>dinevo@upi</strong></span>
+          <span style={{ color: '#AAA' }}>Merchant VPA: <strong style={{ color: '#FFF' }}>dinevo@upi</strong></span>
           <button
             type="button"
             onClick={handleCopyUpi}
             style={{
               background: 'none',
               border: 'none',
-              color: copied ? '#00E699' : 'var(--gold, #F77F00)',
+              color: copied ? '#00E699' : 'var(--gold, #FFD700)',
               fontWeight: 800,
               fontSize: '0.8rem',
               cursor: 'pointer',
@@ -402,14 +509,14 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
               gap: '4px'
             }}
           >
-            {copied ? <><CheckIcon width={14} height={14} /> Copied</> : 'Copy'}
+            {copied ? <><CheckIcon width={14} height={14} /> Copied</> : 'Copy VPA'}
           </button>
         </div>
 
         {/* EXPIRATION TIMER */}
-        <div style={{ fontSize: '0.82rem', color: '#AAA', marginBottom: '20px' }}>
+        <div style={{ fontSize: '0.82rem', color: '#AAA', marginBottom: '16px' }}>
           Session expires in:{' '}
-          <span style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 800, color: timeLeft < 60 ? '#FF4D4D' : '#FFD700' }}>
+          <span style={{ fontFamily: 'monospace', fontWeight: 800, color: timeLeft < 60 ? '#FF4D4D' : '#FFD700' }}>
             {formatTime(timeLeft)}
           </span>
         </div>
@@ -422,12 +529,33 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
 
         {/* CONFIRM PAYMENT BUTTON */}
         <button
-          onClick={handleConfirmPayment}
+          onClick={() => handleConfirmPayment()}
           disabled={verifying || timeLeft <= 0}
           className="btn-dv btn-gold btn-block"
-          style={{ padding: '14px', fontSize: '0.98rem', fontWeight: 900, boxShadow: '0 8px 24px rgba(247,127,0,0.3)' }}
+          style={{ padding: '14px', fontSize: '0.98rem', fontWeight: 900, boxShadow: '0 8px 24px rgba(255,215,0,0.3)', marginBottom: 8 }}
         >
-          {verifying ? <span className="dv-spinner" /> : '✓ VERIFY & EXECUTE PAYMENT'}
+          {verifying ? <span className="dv-spinner" /> : `✓ CONFIRM & EXECUTE ₹${finalGrandTotal.toFixed(2)} PAYMENT`}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleRazorpaySdkCheckout}
+          disabled={verifying}
+          style={{
+            width: '100%',
+            background: 'linear-gradient(135deg, #072654 0%, #0C4B8E 100%)',
+            color: '#FFFFFF',
+            border: '1px solid rgba(255,255,255,0.2)',
+            padding: '12px',
+            borderRadius: '16px',
+            fontSize: '0.86rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            marginBottom: 10,
+            boxShadow: '0 4px 14px rgba(12,75,142,0.3)'
+          }}
+        >
+          💳 LAUNCH RAZORPAY OFFICIAL CHECKOUT SDK
         </button>
 
         <button
@@ -439,8 +567,7 @@ export default function PaymentModal({ order, onPaymentSuccess, onClose }) {
             color: '#AAA',
             fontSize: '0.85rem',
             cursor: 'pointer',
-            padding: '10px 16px',
-            marginTop: '8px',
+            padding: '8px 16px',
             textDecoration: 'underline'
           }}
         >

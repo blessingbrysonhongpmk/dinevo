@@ -41,18 +41,16 @@ app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
-  const mongooseConnected = mongoose.connection.readyState === 1;
-  const isDbActive = mongooseConnected || dbStore.isDbConnected();
+  const isConnected = mongoose.connection.readyState === 1;
   const lanIp = getLocalIpAddress();
   res.json({
-    status: 'ok',
-    database: isDbActive ? 'connected' : 'disconnected',
-    databaseName: 'dinevo',
-    connectionState: mongooseConnected ? 'Mongoose MongoDB Active' : 'Active Store',
-    lanIp,
-    version: '2.1.0'
+    success: true,
+    server: 'running',
+    database: isConnected ? 'connected' : 'disconnected',
+    lanIp
   });
 });
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
@@ -72,11 +70,13 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
-    app.listen(PORT, '0.0.0.0', () => console.log(`[dinevo] Server running on port ${PORT} (0.0.0.0)`));
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   } catch (err) {
-    console.error('[dinevo] Server failed to start due to database connection error.');
     process.exit(1);
   }
 };
 
 startServer();
+

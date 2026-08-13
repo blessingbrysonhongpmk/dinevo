@@ -84,7 +84,7 @@ const defaultItems = [
     name: 'Royal Malabar Mutton Biryani',
     description: 'Kaima rice biryani dum-cooked with tender mutton pieces, cashew nuts, raisins & fragrant ghee.',
     price: 560,
-    image: 'https://images.unsplash.com/photo-1633945274405-b6c8069047b0?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?q=80&w=1200&auto=format&fit=crop',
     category: 'Royal Biryanis',
     veg: false,
     spiceLevel: 2,
@@ -94,6 +94,7 @@ const defaultItems = [
     ingredients: ['Kaima Rice', 'Tender Mutton', 'Ghee', 'Cashews'],
     addOns: []
   },
+
   {
     name: 'Kanyakumari Special Prawn Biryani',
     description: 'Fresh ocean jumbo prawns tossed with roasted coconut spices, layered with aromatic basmati rice.',
@@ -362,7 +363,7 @@ const defaultItems = [
     name: 'Nadan Pepper Chicken Fry',
     description: 'Country-style chicken tossed with crushed black pepper, caramelized shallots, curry leaves & aromatic roasted spices.',
     price: 350,
-    image: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?q=80&w=1200&auto=format&fit=crop',
     category: 'Kanyakumari Specials',
     veg: false,
     spiceLevel: 3,
@@ -371,6 +372,7 @@ const defaultItems = [
     ingredients: ['Chicken', 'Crushed Pepper', 'Shallots', 'Curry Leaves'],
     addOns: [{ name: 'Malabar Parotta (2 pcs)', price: 50 }]
   },
+
 
   // 8. CONTINENTAL PASTAS & PIZZAS
   {
@@ -478,7 +480,35 @@ const defaultItems = [
   }
 ];
 
+const UserModel = require('../models/User');
+
+async function seedAdminUser() {
+  try {
+    if (dbStore.isDbConnected()) {
+      const adminExists = await UserModel.findOne({ email: 'admin@dinevo.com' });
+      if (!adminExists) {
+        await UserModel.create({
+          email: 'admin@dinevo.com',
+          password: 'dinevo123',
+          name: 'DINEVO Admin',
+          role: 'admin'
+        });
+        console.log('[dinevo] Created admin user in Atlas: admin@dinevo.com / dinevo123');
+      } else {
+        adminExists.password = 'dinevo123';
+        adminExists.role = 'admin';
+        await adminExists.save();
+        console.log('[dinevo] Verified & synced admin user credentials in Atlas');
+      }
+    }
+  } catch (userErr) {
+    console.warn('[dinevo] Admin user seed warning:', userErr.message);
+  }
+}
+
 async function seedData(forceReset = false) {
+  await seedAdminUser();
+
   const existing = await dbStore.countRestaurants();
   if (existing > 0 && !forceReset) {
     const rest = (await dbStore.getRestaurants())[0];
@@ -500,4 +530,5 @@ async function seedData(forceReset = false) {
   console.log(`[dinevo] Restaurant ID: ${restaurant._id}`);
 }
 
-module.exports = { seedData, defaultItems, defaultRestaurant };
+module.exports = { seedData, seedAdminUser, defaultItems, defaultRestaurant };
+

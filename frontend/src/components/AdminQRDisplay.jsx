@@ -167,10 +167,67 @@ export default function AdminQRDisplay({ table, onClose }) {
           <div style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '0.95rem', fontWeight: 800, color: 'var(--burgundy, #E63946)', marginTop: 14, letterSpacing: '0.08em' }}>
             {tableCode}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#666', marginTop: 6, wordBreak: 'break-all', fontFamily: 'monospace', background: '#FFF', padding: '6px 10px', borderRadius: '8px', border: '1px solid #DDD' }}>
-            🔗 {targetUrl}
+
+          <div style={{ fontSize: '0.78rem', color: '#444', marginTop: 8, wordBreak: 'break-all', fontFamily: 'monospace', background: '#FFF', padding: '8px 12px', borderRadius: '10px', border: '1px solid #DDD', textAlign: 'left' }}>
+            <div style={{ fontWeight: 800, color: '#111', marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>🔗 QR Target URL (Encoded):</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(targetUrl);
+                  alert(`Copied URL: ${targetUrl}`);
+                }}
+                style={{ background: 'var(--gold, #F77F00)', color: '#FFF', border: 'none', borderRadius: '6px', padding: '2px 8px', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+              >
+                Copy URL
+              </button>
+            </div>
+            <div style={{ color: 'var(--burgundy, #E63946)', fontWeight: 700 }}>{targetUrl}</div>
+          </div>
+
+          {/* PUBLIC PRODUCTION DOMAIN & LOCAL LAN CONFIGURATOR */}
+          <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(217,119,6,0.06)', borderRadius: '14px', border: '1px solid rgba(217,119,6,0.25)', textAlign: 'left' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <label style={{ fontSize: '0.74rem', color: 'var(--ink)', fontWeight: 800 }}>
+                🌐 Production Domain (WhatsApp & Remote Sharing):
+              </label>
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 8px', borderRadius: '999px', background: targetUrl.startsWith('https://') ? 'var(--sage-tint)' : 'var(--gold-tint)', color: targetUrl.startsWith('https://') ? 'var(--sage-dark)' : 'var(--gold)' }}>
+                {targetUrl.startsWith('https://') ? '● PUBLIC PROD' : '● LOCAL DEV'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                type="text"
+                placeholder="e.g. https://dinevo.vercel.app"
+                value={customHost}
+                onChange={(e) => {
+                  setCustomHost(e.target.value);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('dinevo_public_domain', e.target.value);
+                  }
+                }}
+                style={{ flex: 1, padding: '7px 10px', borderRadius: '8px', border: '1px solid #CCC', fontSize: '0.8rem', fontFamily: 'monospace' }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomHost('');
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('dinevo_public_domain');
+                  }
+                }}
+                style={{ padding: '7px 12px', background: '#333', color: '#FFF', border: 'none', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Reset
+              </button>
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#666', marginTop: 6, lineHeight: 1.4 }}>
+              Set your production Vercel/domain URL here so QR codes work when photographed & sent via WhatsApp anywhere in the world!
+            </div>
           </div>
         </div>
+
+
 
         {/* Action Buttons */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>

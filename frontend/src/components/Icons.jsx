@@ -90,3 +90,29 @@ export const PlusIcon = (p) => (
   </svg>
 );
 
+export const MinusIcon = (p) => (
+  <svg viewBox="0 0 24 24" width={16} height={16} {...base} {...p}>
+    <path d="M5 12h14" />
+  </svg>
+);
+
+export const UtensilsIcon = (p) => (
+  <svg viewBox="0 0 24 24" width={18} height={18} {...base} {...p}>
+    <path d="M18 2v20M21 2v6a3 3 0 0 1-3 3M18 11V2M3 2v7a4 4 0 0 0 4 4v9M7 2v20M11 2v7a4 4 0 0 1-4 4" />
+  </svg>
+);
+
+export const ChefHatIcon = (p) => (
+  <svg viewBox="0 0 24 24" width={20} height={20} {...base} {...p}>
+    <path d="M6 13.8A6 6 0 1 1 18 13.8M6 13.8V21h12v-7.2" />
+    <path d="M6 17h12" />
+  </svg>
+);
+
+export const SparklesIcon = (p) => (
+  <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor" stroke="none" {...p}>
+    <path d="M12 0l2.5 8.5L23 11l-8.5 2.5L12 22l-2.5-8.5L1 11l8.5-2.5z" />
+  </svg>
+);
+
+

@@ -42,12 +42,12 @@ const dbStore = {
     isConnected = status;
   },
   isDbConnected() {
-    return isConnected;
+    return isConnected && mongoose.connection.readyState === 1;
   },
 
   // RESTAURANTS
   async getRestaurants() {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await RestaurantModel.find().lean();
     }
     return memoryDb.restaurants;
@@ -186,30 +186,34 @@ const dbStore = {
 
   // FOODS / MENU
   async getMenuItems(filter = {}) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       const query = MenuItemModel.find(filter);
       return await query.sort({ category: 1, name: 1 }).lean();
     }
 
     let items = [...memoryDb.menuItems];
     if (filter.restaurant) {
-      items = items.filter((i) => i.restaurant.toString() === filter.restaurant.toString());
+      const matched = items.filter((i) => i.restaurant && i.restaurant.toString() === filter.restaurant.toString());
+      if (matched.length > 0) {
+        items = matched;
+      }
     }
     if (filter.category) {
-      if (filter.category.toLowerCase() === 'popular') {
+      const catLower = filter.category.toLowerCase();
+      if (catLower === 'popular') {
         items = items.filter((i) => i.isPopular);
-      } else if (filter.category.toLowerCase() === 'signature') {
-        items = items.filter((i) => i.isSignature || i.category.toLowerCase() === 'signature');
-      } else if (filter.category.toLowerCase() === 'spicy') {
-        items = items.filter((i) => i.isSpicy || i.spiceLevel > 1 || i.category.toLowerCase() === 'spicy');
+      } else if (catLower === 'signature') {
+        items = items.filter((i) => i.isSignature || (i.category && i.category.toLowerCase() === 'signature'));
+      } else if (catLower === 'spicy') {
+        items = items.filter((i) => i.isSpicy || i.spiceLevel > 1 || (i.category && i.category.toLowerCase() === 'spicy'));
       } else {
-        items = items.filter((i) => i.category.toLowerCase() === filter.category.toLowerCase());
+        items = items.filter((i) => i.category && i.category.toLowerCase() === catLower);
       }
     }
     if (filter.isAvailable !== undefined) {
       items = items.filter((i) => i.isAvailable === filter.isAvailable);
     }
-    return items.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+    return items.sort((a, b) => (a.category || '').localeCompare(b.category || '') || (a.name || '').localeCompare(b.name || ''));
   },
 
   async getMenuItemById(id) {
@@ -339,37 +343,71 @@ const dbStore = {
   },
 
   // PAYMENT FLOW
-  async createPaymentSession(orderId, method = 'UPI') {
+  async createPaymentSession(orderId, options = 'UPI') {
     const order = await this.getOrderById(orderId);
     if (!order) throw new Error('Order not found');
 
-    const txnId = `TXN-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const method = typeof options === 'string' ? options : (options.method || 'UPI');
+    const tipAmount = typeof options === 'object' && options.tipAmount ? Number(options.tipAmount) : 0;
+    const bankName = typeof options === 'object' ? options.bankName : null;
+    const customerPhone = typeof options === 'object' ? options.customerPhone : null;
+
+    const timestampStr = Date.now().toString();
+    const txnId = `TXN-${timestampStr.slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const utr = `UTR${timestampStr.slice(-8)}${Math.floor(10000 + Math.random() * 90000)}`;
+
+    const totalPaid = Math.round((order.total + tipAmount) * 100) / 100;
 
     const paymentDoc = {
       order: order._id,
+      orderNumber: order.orderNumber,
       sessionCode: order.sessionCode,
-      amount: order.total,
-      provider: 'DINEVO_MOCK_PAYMENT_GATEWAY',
+      tableNumber: order.tableNumber,
+      amount: totalPaid,
+      subtotal: order.subtotal,
+      tax: order.tax,
+      tipAmount,
+      provider: method.toUpperCase().includes('RAZOR') ? 'RAZORPAY_GATEWAY' : 'DINEVO_POS_GATEWAY',
       method,
+      bankName,
       status: 'SUCCESS',
-      transactionId: txnId
+      transactionId: txnId,
+      utrNumber: utr,
+      customerPhone,
+      createdAt: new Date()
     };
 
+    let createdPayment = null;
     if (isConnected) {
-      await PaymentModel.create(paymentDoc);
+      createdPayment = (await PaymentModel.create(paymentDoc)).toObject();
     } else {
-      memoryDb.payments.push({ ...paymentDoc, _id: generateId(), createdAt: new Date() });
+      createdPayment = { ...paymentDoc, _id: generateId() };
+      memoryDb.payments.push(createdPayment);
     }
 
-    // Auto-verify payment in mock mode
-    return await this.verifyPayment(order._id, txnId);
+    const updatedOrder = await this.verifyPayment(order._id, txnId, utr);
+    const receipt = await this.generateReceiptData(order._id);
+
+    return {
+      payment: createdPayment,
+      order: updatedOrder,
+      receipt
+    };
   },
 
-  async verifyPayment(orderId, transactionId) {
+  async getPaymentByOrderId(orderId) {
+    if (isConnected) {
+      return await PaymentModel.findOne({ order: orderId }).sort({ createdAt: -1 }).lean();
+    }
+    return memoryDb.payments.find((p) => p.order.toString() === orderId.toString()) || null;
+  },
+
+  async verifyPayment(orderId, transactionId, utrNumber) {
+    const utr = utrNumber || `UTR${Date.now().toString().slice(-8)}${Math.floor(10000 + Math.random() * 90000)}`;
     if (isConnected) {
       const order = await OrderModel.findByIdAndUpdate(
         orderId,
-        { paymentStatus: 'PAID', status: 'CONFIRMED' },
+        { paymentStatus: 'PAID', status: 'CONFIRMED', transactionId, utrNumber: utr },
         { new: true }
       ).lean();
       return order;
@@ -379,10 +417,46 @@ const dbStore = {
     if (order) {
       order.paymentStatus = 'PAID';
       order.status = 'CONFIRMED';
+      order.transactionId = transactionId;
+      order.utrNumber = utr;
       order.updatedAt = new Date();
       return order;
     }
     return null;
+  },
+
+  async generateReceiptData(orderId) {
+    const order = await this.getOrderById(orderId);
+    if (!order) return null;
+
+    const payment = await this.getPaymentByOrderId(orderId);
+    const restaurant = await this.getRestaurantById(order.restaurantId || order.restaurant);
+
+    const cgst = Math.round((order.tax / 2) * 100) / 100;
+    const sgst = Math.round((order.tax / 2) * 100) / 100;
+
+    return {
+      receiptNumber: `INV-${order.orderNumber}`,
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      tableNumber: order.tableNumber,
+      sessionCode: order.sessionCode,
+      restaurantName: restaurant?.name || 'DINEVO Kitchen & Bar',
+      restaurantAddress: restaurant?.address || '124 Luxury Promenade, Grand Culinary Plaza',
+      gstin: restaurant?.gstin || '27AABCD1234E1Z5',
+      date: order.createdAt || new Date(),
+      items: order.items || [],
+      subtotal: order.subtotal,
+      cgst,
+      sgst,
+      totalTax: order.tax,
+      tipAmount: payment?.tipAmount || 0,
+      grandTotal: (payment?.amount || order.total),
+      paymentMethod: payment?.method || 'UPI',
+      paymentStatus: 'PAID',
+      transactionId: payment?.transactionId || order.transactionId || `TXN-${Date.now().toString().slice(-6)}`,
+      utrNumber: payment?.utrNumber || order.utrNumber || `UTR${Date.now().toString().slice(-8)}`
+    };
   },
 
   // STATUS LIFE-CYCLE CONTROL
@@ -585,6 +659,9 @@ const dbStore = {
       const rest = memoryDb.restaurants[0];
       const tbl = rest.tables ? rest.tables.find((t) => t.code && t.code.trim().toUpperCase() === cleanCode) : null;
       if (!tbl) return { success: false, message: 'Table not found' };
+      tbl.status = 'AVAILABLE';
+      tbl.activeSession = null;
+      return { success: true, table: tbl };
     }
     return { success: false, message: 'No restaurant found' };
   },

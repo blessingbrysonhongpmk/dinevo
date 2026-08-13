@@ -653,6 +653,11 @@ export default function AdminPanel({ embedded = false }) {
                 <img src={qrUrl} alt={`Table ${t.tableNumber} QR`} style={{ width: '110px', height: '110px', display: 'block' }} />
               </div>
 
+              <div style={{ fontSize: '0.68rem', color: 'var(--ink-soft)', marginTop: 6, wordBreak: 'break-all', fontFamily: 'monospace', padding: '0 4px' }}>
+                🔗 {targetUrl}
+              </div>
+
+
               <div style={{ display: 'flex', gap: 6, marginTop: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button className="btn-dv btn-gold" style={{ fontSize: '0.75rem', padding: '6px 12px' }} onClick={() => setSelectedTableQr({ ...t, qrUrl })}>
                   View QR

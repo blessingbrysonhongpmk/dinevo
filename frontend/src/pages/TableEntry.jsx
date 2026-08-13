@@ -285,15 +285,9 @@ export default function TableEntry() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <button
                   className="v40-primary-cta"
-                  onClick={() => {
-                    if (isDesktop) {
-                      setShowQrModal(true);
-                    } else {
-                      setScanning(true);
-                    }
-                  }}
+                  onClick={() => setScanning(true)}
                 >
-                  <QrIcon width={18} height={18} /> SCAN TABLE QR
+                  <QrIcon width={18} height={18} /> SCAN TABLE QR CODE
                 </button>
 
                 <button
@@ -317,10 +311,39 @@ export default function TableEntry() {
                   🌐 REMOTE LONG-DISTANCE TABLE BOOKING & PRE-ORDER
                 </button>
 
+                {/* 1-TAP QUICK TABLE SELECTION FOR LOCALHOST & MOBILE */}
+                <div style={{ marginTop: 10, paddingTop: 14, borderTop: '1px dashed rgba(255,255,255,0.15)', textAlign: 'left' }}>
+                  <div style={{ fontSize: '0.76rem', color: '#FFD700', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                    ⚡ Direct Table Express Selection:
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                    {['01', '02', '03', '04', '05', '06', '07', '08'].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => validateTable(`DINEVO-T${num}`)}
+                        style={{
+                          padding: '10px 4px',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(255,215,0,0.35)',
+                          background: 'rgba(255,215,0,0.14)',
+                          color: '#FFFFFF',
+                          fontWeight: 800,
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          textAlign: 'center'
+                        }}
+                      >
+                        Table {num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <Link
                   to="/user"
                   className="btn-dv btn-outline btn-block"
-                  style={{ padding: '14px', fontSize: '0.92rem', fontWeight: 800, color: '#FFF', borderColor: 'rgba(255,255,255,0.2)' }}
+                  style={{ padding: '14px', fontSize: '0.92rem', fontWeight: 800, color: '#FFF', borderColor: 'rgba(255,255,255,0.2)', marginTop: 8 }}
                 >
                   OPEN USER PANEL (DEMO)
                 </Link>
