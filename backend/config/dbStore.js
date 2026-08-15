@@ -92,14 +92,14 @@ const dbStore = {
 
 
   async countRestaurants() {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await RestaurantModel.countDocuments();
     }
     return memoryDb.restaurants.length;
   },
 
   async createRestaurant(data) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await RestaurantModel.create(data);
     }
     const doc = { ...data, _id: generateId(), createdAt: new Date(), updatedAt: new Date() };
@@ -136,7 +136,7 @@ const dbStore = {
       isActive: true
     };
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
       await DiningSessionModel.create(sessionData);
     } else {
       memoryDb.sessions.push({ ...sessionData, _id: generateId(), createdAt: new Date() });
@@ -157,7 +157,7 @@ const dbStore = {
 
   async getSessionByCode(sessionCode) {
     const codeUpper = (sessionCode || '').trim().toUpperCase();
-    if (isConnected) {
+    if (this.isDbConnected()) {
       const session = await DiningSessionModel.findOne({ sessionCode: codeUpper }).populate('restaurant').lean();
       if (!session) return null;
       return {
@@ -218,14 +218,14 @@ const dbStore = {
   },
 
   async getMenuItemById(id) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await MenuItemModel.findById(id).lean();
     }
     return memoryDb.menuItems.find((i) => i._id.toString() === id.toString()) || null;
   },
 
   async insertMenuItems(items) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await MenuItemModel.insertMany(items);
     }
     const docs = items.map((i) => ({
@@ -343,7 +343,7 @@ const dbStore = {
       customerFeedback: customerNote || ''
     };
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await OrderModel.create(orderDoc);
     }
 
@@ -358,14 +358,14 @@ const dbStore = {
   },
 
   async getOrderById(id) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await OrderModel.findById(id).lean();
     }
     return memoryDb.orders.find((o) => o._id.toString() === id.toString() || o.orderNumber === id) || null;
   },
 
   async getAllOrders() {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await OrderModel.find().sort({ createdAt: -1 }).lean();
     }
     return [...memoryDb.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -407,7 +407,7 @@ const dbStore = {
     };
 
     let createdPayment = null;
-    if (isConnected) {
+    if (this.isDbConnected()) {
       createdPayment = (await PaymentModel.create(paymentDoc)).toObject();
     } else {
       createdPayment = { ...paymentDoc, _id: generateId() };
@@ -425,7 +425,7 @@ const dbStore = {
   },
 
   async getPaymentByOrderId(orderId) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await PaymentModel.findOne({ order: orderId }).sort({ createdAt: -1 }).lean();
     }
     return memoryDb.payments.find((p) => p.order.toString() === orderId.toString()) || null;
@@ -433,7 +433,7 @@ const dbStore = {
 
   async verifyPayment(orderId, transactionId, utrNumber) {
     const utr = utrNumber || `UTR${Date.now().toString().slice(-8)}${Math.floor(10000 + Math.random() * 90000)}`;
-    if (isConnected) {
+    if (this.isDbConnected()) {
       const order = await OrderModel.findByIdAndUpdate(
         orderId,
         { paymentStatus: 'PAID', status: 'CONFIRMED', transactionId, utrNumber: utr },
@@ -523,7 +523,7 @@ const dbStore = {
       }
     }
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await OrderModel.findByIdAndUpdate(order._id, { status: newStatus }, { new: true }).lean();
     }
 
@@ -533,7 +533,7 @@ const dbStore = {
   },
 
   async rateOrder(id, rating, feedback = '') {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await OrderModel.findByIdAndUpdate(id, { rating, customerFeedback: feedback }, { new: true }).lean();
     }
     const order = memoryDb.orders.find((o) => o._id.toString() === id.toString());
@@ -557,7 +557,7 @@ const dbStore = {
     const cleanNum = (tableNumber || '').toString().padStart(2, '0');
     const cleanCode = (code || `DINEVO-T${cleanNum}`).trim().toUpperCase();
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
       const rest = await RestaurantModel.findOne();
       if (!rest) throw new Error('Restaurant not found');
       rest.tables.push({ tableNumber: cleanNum, code: cleanCode, status: 'Available' });
@@ -573,7 +573,7 @@ const dbStore = {
   },
 
   async updateTableStatus(tableCode, status) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       const rest = await RestaurantModel.findOne();
       if (rest && rest.tables) {
         const tbl = rest.tables.find((t) => t.code === tableCode || t.tableNumber === tableCode);
@@ -603,7 +603,7 @@ const dbStore = {
   async bookTable(tableCode) {
     const cleanCode = (tableCode || '').trim().toUpperCase();
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
       // Use $elemMatch to ensure exact table code and status match the same subdocument
       const result = await RestaurantModel.findOneAndUpdate(
         {
@@ -662,7 +662,7 @@ const dbStore = {
   async releaseTable(tableCode) {
     const cleanCode = (tableCode || '').trim().toUpperCase();
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
       const result = await RestaurantModel.findOneAndUpdate(
         {
           tables: {
@@ -699,7 +699,7 @@ const dbStore = {
     const cleanSource = (sourceCode || '').trim().toUpperCase();
     const cleanTarget = (targetCode || '').trim().toUpperCase();
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
        const rest = await RestaurantModel.findOne();
        if (!rest) return { success: false, message: 'Restaurant not found' };
        const sourceTbl = rest.tables.find(t => t.code.toUpperCase() === cleanSource || t.tableNumber === cleanSource);
@@ -738,7 +738,7 @@ const dbStore = {
       isAvailable: data.isAvailable !== false
     };
 
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await MenuItemModel.create(itemData);
     }
     const doc = {
@@ -752,7 +752,7 @@ const dbStore = {
   },
 
   async updateFoodItem(id, updateData) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       return await MenuItemModel.findByIdAndUpdate(id, updateData, { new: true }).lean();
     }
     const item = memoryDb.menuItems.find((i) => i._id.toString() === id.toString());
@@ -764,7 +764,7 @@ const dbStore = {
   },
 
   async deleteFoodItem(id) {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       await MenuItemModel.findByIdAndDelete(id);
       return true;
     }
@@ -781,7 +781,7 @@ const dbStore = {
   },
 
   async clearAll() {
-    if (isConnected) {
+    if (this.isDbConnected()) {
       await RestaurantModel.deleteMany({});
       await MenuItemModel.deleteMany({});
       await OrderModel.deleteMany({});

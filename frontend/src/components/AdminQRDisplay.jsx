@@ -214,7 +214,7 @@ export default function AdminQRDisplay({ table, onClose }) {
                 type="button"
                 onClick={() => {
                   const lanIp = sessionStorage.getItem('dinevo_lan_ip') || 'localhost';
-                  const url = `http://${lanIp}:3000`;
+                  const url = `https://${lanIp}:3000`;
                   setCustomHost(url);
                   if (typeof window !== 'undefined') {
                     localStorage.setItem('dinevo_public_domain', url);

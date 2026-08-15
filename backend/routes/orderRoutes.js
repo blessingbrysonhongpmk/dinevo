@@ -59,6 +59,13 @@ router.post('/', async (req, res) => {
       items,
       customerNote
     });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('new_order', order);
+      io.emit('order_created', order);
+    }
+
     res.status(201).json(order);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -83,6 +90,13 @@ router.patch('/:id/status', async (req, res) => {
     if (!status) return res.status(400).json({ message: 'Status is required' });
 
     const order = await dbStore.updateOrderStatus(req.params.id, status, servingCode);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('order_updated', order);
+      io.emit('status_changed', order);
+    }
+
     res.json(order);
   } catch (err) {
     res.status(400).json({ message: err.message });

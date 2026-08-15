@@ -48,7 +48,8 @@ export function getQrTargetUrl(tableInput, customHost = null) {
     }
 
     if (dynamicLanIp && dynamicLanIp !== 'localhost' && dynamicLanIp !== '127.0.0.1') {
-      return `http://${dynamicLanIp}:${p}/table/${code}`;
+      const proto = window.location.protocol === 'https:' ? 'https' : 'http';
+      return `${proto}://${dynamicLanIp}:${p}/table/${code}`;
     }
 
     return `${origin}/table/${code}`;

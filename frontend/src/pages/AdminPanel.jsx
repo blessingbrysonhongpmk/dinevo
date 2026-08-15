@@ -13,6 +13,7 @@ import {
 import AdminQRDisplay from '../components/AdminQRDisplay';
 import AdminReceiptModal from '../components/AdminReceiptModal';
 import { getQrTargetUrl } from '../utils/qrUrl';
+import { getSocket } from '../utils/socket';
 
 const STATUS_COLORS = {
   AVAILABLE: { bg: 'rgba(6,214,160,0.12)', color: '#048A65', dot: '#06D6A0' },
@@ -130,8 +131,33 @@ export default function AdminPanel({ embedded = false }) {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 2500);
-    return () => clearInterval(interval);
+
+    const socket = getSocket();
+
+    const handleNewOrder = (newOrder) => {
+      console.log('[AdminPanel Socket] 🔔 New phone order received:', newOrder);
+      if (soundEnabled) {
+        playAudioAlert();
+      }
+      fetchData();
+    };
+
+    const handleOrderUpdated = (updatedOrder) => {
+      console.log('[AdminPanel Socket] 🔄 Order status updated:', updatedOrder);
+      fetchData();
+    };
+
+    socket.on('new_order', handleNewOrder);
+    socket.on('order_created', handleNewOrder);
+    socket.on('order_updated', handleOrderUpdated);
+
+    const interval = setInterval(fetchData, 3000);
+    return () => {
+      socket.off('new_order', handleNewOrder);
+      socket.off('order_created', handleNewOrder);
+      socket.off('order_updated', handleOrderUpdated);
+      clearInterval(interval);
+    };
   }, [soundEnabled]);
 
 

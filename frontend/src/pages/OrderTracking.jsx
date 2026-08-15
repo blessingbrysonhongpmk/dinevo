@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import { CheckIcon, StarIcon, ShieldCheckIcon, ClockIcon } from '../components/Icons';
+import { getSocket } from '../utils/socket';
 
 const STEPS = [
   { key: 'PAID', title: 'Payment Verified', desc: 'Secure backend payment confirmed.' },
@@ -37,10 +38,26 @@ export default function OrderTracking({ viewMode }) {
 
   useEffect(() => {
     fetchOrder();
+
+    const socket = getSocket();
+    const handleSocketUpdate = (updated) => {
+      if (updated && (updated._id === id || updated.orderNumber === id)) {
+        setOrder(updated);
+      }
+    };
+
+    socket.on('order_updated', handleSocketUpdate);
+    socket.on('status_changed', handleSocketUpdate);
+
     const interval = setInterval(() => {
       api.get(`/orders/${id}`).then((res) => setOrder(res.data?.data || res.data)).catch(() => {});
-    }, 2500);
-    return () => clearInterval(interval);
+    }, 3000);
+
+    return () => {
+      socket.off('order_updated', handleSocketUpdate);
+      socket.off('status_changed', handleSocketUpdate);
+      clearInterval(interval);
+    };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);

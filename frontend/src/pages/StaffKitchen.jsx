@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { KitchenIcon, CheckIcon, ShieldCheckIcon, FlameIcon, ClockIcon } from '../components/Icons';
+import { getSocket } from '../utils/socket';
 
 export default function StaffKitchen() {
   const [orders, setOrders] = useState([]);
@@ -28,8 +29,24 @@ export default function StaffKitchen() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 2500);
-    return () => clearInterval(interval);
+
+    const socket = getSocket();
+
+    const handleUpdate = () => {
+      fetchOrders();
+    };
+
+    socket.on('new_order', handleUpdate);
+    socket.on('order_created', handleUpdate);
+    socket.on('order_updated', handleUpdate);
+
+    const interval = setInterval(fetchOrders, 3000);
+    return () => {
+      socket.off('new_order', handleUpdate);
+      socket.off('order_created', handleUpdate);
+      socket.off('order_updated', handleUpdate);
+      clearInterval(interval);
+    };
   }, []);
 
 

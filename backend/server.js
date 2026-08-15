@@ -35,7 +35,11 @@ function getLocalIpAddress() {
   return 'localhost';
 }
 
+const http = require('http');
+const { Server } = require('socket.io');
+
 const app = express();
+const server = http.createServer(app);
 
 // Configured origins for CORS
 const allowedOrigins = [
@@ -49,14 +53,32 @@ if (process.env.FRONTEND_URL) {
   allowedOrigins.push(process.env.FRONTEND_URL.replace(/\/+$/, ''));
 }
 
+const dynamicCorsOrigin = function (origin, callback) {
+  if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+    return callback(null, true);
+  }
+  return callback(null, true);
+};
+
+const io = new Server(server, {
+  cors: {
+    origin: dynamicCorsOrigin,
+    credentials: true
+  }
+});
+
+app.set('io', io);
+
+io.on('connection', (socket) => {
+  console.log(`[DINEVO Socket] Client connected: ${socket.id}`);
+  socket.on('disconnect', () => {
+    console.log(`[DINEVO Socket] Client disconnected: ${socket.id}`);
+  });
+});
+
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
-        return callback(null, true);
-      }
-      return callback(null, true);
-    },
+    origin: dynamicCorsOrigin,
     credentials: true
   })
 );
@@ -99,12 +121,11 @@ app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
 const PORT = process.env.PORT || 5000;
-let server;
 
 const startServer = () => {
   try {
-    server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`DINEVO server running on port ${PORT}`);
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`DINEVO server & socket.io running on port ${PORT}`);
     });
 
     server.on('error', (err) => {

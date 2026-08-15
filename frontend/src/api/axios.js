@@ -2,29 +2,43 @@ import axios from 'axios';
 
 export const RENDER_PRODUCTION_API_URL = 'https://dinevo.onrender.com/api';
 
-function getDynamicApiUrl() {
-  // 1. Environment Variable (VITE_API_URL || REACT_APP_API_URL)
+export function getSocketServerUrl() {
+  const apiUrl = getDynamicApiUrl();
+  const socketUrl = apiUrl.replace(/\/api\/?$/, '');
+  return socketUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+}
+
+export function getDynamicApiUrl() {
   const envUrl =
     (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL)) ||
     (typeof process !== 'undefined' && process.env && (process.env.VITE_API_URL || process.env.REACT_APP_API_URL));
 
-  if (envUrl && typeof envUrl === 'string' && envUrl.startsWith('http')) {
+  if (envUrl && typeof envUrl === 'string' && envUrl.startsWith('http') && !envUrl.includes('localhost')) {
     const cleanUrl = envUrl.trim().replace(/\/+$/, '');
     return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
   }
 
-  // 2. Production & Mobile Browser Environment (Vercel / Mobile IP / Cloud domain)
   if (typeof window !== 'undefined') {
     const { hostname } = window.location;
 
-    // Mobile phones, Vercel, LAN IP or cloud domain -> use Render production backend
-    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    // Check if running on cloud production domains
+    if (hostname.includes('vercel.app') || hostname.includes('onrender.com') || hostname.includes('netlify.app')) {
       return RENDER_PRODUCTION_API_URL;
+    }
+
+    // Localhost development
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return '/api';
+    }
+
+    // Local Network / Wi-Fi IP access (e.g. 192.168.x.x, 10.x.x.x or .local)
+    const isIpAddress = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(hostname) || hostname.endsWith('.local');
+    if (isIpAddress) {
+      return '/api';
     }
   }
 
-  // 3. Default fallback for local development
-  return 'http://localhost:5000/api';
+  return '/api';
 }
 
 const api = axios.create({
