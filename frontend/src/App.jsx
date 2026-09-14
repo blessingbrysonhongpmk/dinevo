@@ -13,7 +13,6 @@ import OrderTracking from './pages/OrderTracking';
 import AdminPanel from './pages/AdminPanel';
 import Login from './pages/Login';
 import UserStandalonePage from './pages/UserStandalonePage';
-import DemoPrototype from './pages/DemoPrototype';
 
 import api from './api/axios';
 
@@ -28,7 +27,7 @@ function ProtectedAdminRoute({ children }) {
 
 function MainLayout() {
   const location = useLocation();
-  const isFullscreenView = location.pathname.startsWith('/demo') || location.pathname.startsWith('/user') || location.pathname.startsWith('/login');
+  const isFullscreenView = location.pathname.startsWith('/user') || location.pathname.startsWith('/login');
 
   React.useEffect(() => {
     api.get('/health').then((res) => {
@@ -45,7 +44,7 @@ function MainLayout() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/demo" element={<DemoPrototype />} />
+          <Route path="/demo" element={<Navigate to="/user" replace />} />
           <Route path="/user" element={<UserStandalonePage />} />
           <Route path="/table" element={<TableEntry />} />
           <Route path="/table/:tableCode" element={<TableEntry />} />

@@ -26,7 +26,7 @@ export default function TableEntryForm({ code, onChangeCode, onSubmit, loading, 
 
       <div style={{ marginTop: 22, textAlign: 'center' }}>
         <span style={{ fontSize: '0.78rem', color: 'var(--ink-faint)', display: 'block', marginBottom: 8, fontWeight: 600 }}>
-          Quick demo table shortcuts:
+          Available Dining Tables:
         </span>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
           {['DINEVO-T08', 'DINEVO-T01', 'DINEVO-T02', 'DV-T1'].map((tc) => (

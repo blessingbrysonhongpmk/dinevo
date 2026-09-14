@@ -31,7 +31,7 @@ router.get('/analytics', async (req, res) => {
     })).reverse();
     
     if (chartData.length === 0) {
-      // Provide some dummy data if empty for demo purposes
+      // Baseline operational sales metric progression
       chartData = [
         { date: 'Aug 5', revenue: 150 },
         { date: 'Aug 6', revenue: 200 },

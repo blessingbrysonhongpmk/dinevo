@@ -1,20 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import FoodCard from '../components/FoodCard';
 import { SearchIcon, FlameIcon, StarIcon } from '../components/Icons';
 import { useCart } from '../context/CartContext';
-
 import { FALLBACK_MENU_ITEMS } from '../data/fallbackMenu';
 
 export default function Menu() {
   const { session } = useCart();
+  const [searchParams] = useSearchParams();
+  const urlCategory = searchParams.get('category');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState(urlCategory || 'All');
   const [query, setQuery] = useState('');
   const [dietFilter, setDietFilter] = useState('All'); // 'All', 'Veg', 'NonVeg', 'Spicy', 'Signature'
+  const [sortBy, setSortBy] = useState('featured'); // 'featured', 'rating', 'price-asc', 'price-desc'
+
+  useEffect(() => {
+    if (urlCategory) {
+      setCategory(urlCategory);
+    }
+  }, [urlCategory]);
 
   useEffect(() => {
     setLoading(true);
@@ -42,60 +50,45 @@ export default function Menu() {
   }, []);
 
   const categories = useMemo(() => {
-    const defaultCats = [
-      'All',
-      'Signature',
-      'Arabian Mandhi',
-      'Royal Biryanis',
-      'Kanyakumari Specials',
-      'Starters & Tandoori',
-      'Burgers & Wraps',
-      'Continental Pastas',
-      'Juices & Coolers',
-      '5-Star Desserts',
-      'Soups & Beverages'
-    ];
-
-    return defaultCats;
-  }, []);
+    const rawCategories = items.map((i) => i.category).filter(Boolean);
+    const unique = Array.from(new Set(rawCategories));
+    return ['All', ...unique];
+  }, [items]);
 
   const filtered = useMemo(() => {
-    return items.filter((i) => {
+    let list = items.filter((i) => {
       let matchCategory = true;
       if (category !== 'All') {
-        const cleanCat = category.replace(/[^a-zA-Z &]/g, '').trim().toLowerCase();
-        if (cleanCat.includes('signature')) {
-          matchCategory = !!i.isSignature || i.category.toLowerCase().includes('signature');
-        } else if (cleanCat.includes('kanyakumari')) {
-          matchCategory = !!i.isKanyakumariSpecial || i.category.toLowerCase().includes('kanyakumari');
-        } else if (cleanCat.includes('juices') || cleanCat.includes('coolers')) {
-          matchCategory = !!i.isJuice || i.category.toLowerCase().includes('juice') || i.category.toLowerCase().includes('beverage');
-        } else if (cleanCat.includes('dessert')) {
-          matchCategory = !!i.isDessert || i.category.toLowerCase().includes('dessert');
-        } else if (cleanCat.includes('spicy')) {
-          matchCategory = !!i.isSpicy || i.spiceLevel > 1 || i.category.toLowerCase().includes('spicy');
-        } else {
-          matchCategory = i.category.toLowerCase().includes(cleanCat);
-        }
+        matchCategory = (i.category || '').trim().toLowerCase() === category.trim().toLowerCase();
       }
-
 
       let matchDiet = true;
       if (dietFilter === 'Veg') matchDiet = !!i.veg;
       if (dietFilter === 'NonVeg') matchDiet = !i.veg;
-      if (dietFilter === 'Spicy') matchDiet = !!i.isSpicy || i.spiceLevel > 1;
-      if (dietFilter === 'Signature') matchDiet = !!i.isSignature;
+      if (dietFilter === 'Spicy') matchDiet = !!i.isSpicy || (Number(i.spiceLevel) > 1);
+      if (dietFilter === 'Signature') matchDiet = !!i.isSignature || (i.category || '').toLowerCase().includes('signature');
 
+      const q = query.trim().toLowerCase();
       const matchQuery =
-        i.name.toLowerCase().includes(query.toLowerCase()) ||
-        (i.description && i.description.toLowerCase().includes(query.toLowerCase())) ||
-        (i.category && i.category.toLowerCase().includes(query.toLowerCase()));
+        !q ||
+        (i.name && i.name.toLowerCase().includes(q)) ||
+        (i.description && i.description.toLowerCase().includes(q)) ||
+        (i.category && i.category.toLowerCase().includes(q)) ||
+        (i.ingredients && i.ingredients.some((ing) => ing.toLowerCase().includes(q)));
 
       return matchCategory && matchDiet && matchQuery;
     });
-  }, [items, category, dietFilter, query]);
 
-  if (!session) return <Navigate to="/table" replace />;
+    if (sortBy === 'rating') {
+      list.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+    } else if (sortBy === 'price-asc') {
+      list.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sortBy === 'price-desc') {
+      list.sort((a, b) => Number(b.price) - Number(a.price));
+    }
+
+    return list;
+  }, [items, category, dietFilter, query, sortBy]);
 
   return (
     <div>
@@ -103,24 +96,46 @@ export default function Menu() {
         <div className="container-dv">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <span className="eyebrow" style={{ color: 'var(--gold-soft)' }}>
-                Table {session.tableNumber} &middot; Session #{session.sessionCode}
-              </span>
-              <h1 style={{ marginTop: 6 }}>{session.restaurantName || 'DINEVO Kitchen'}</h1>
-              <p className="sub">In-Restaurant Menu &middot; Select, Customize & Order</p>
+              {session ? (
+                <>
+                  <span className="eyebrow" style={{ color: 'var(--gold-soft)' }}>
+                    Table {session.tableNumber} &middot; Session #{session.sessionCode}
+                  </span>
+                  <h1 style={{ marginTop: 6 }}>{session.restaurantName || 'DINEVO Grand Dining House'}</h1>
+                  <p className="sub">Gourmet World Cuisine &middot; 100 Handcrafted Dishes</p>
+                </>
+              ) : (
+                <>
+                  <span className="eyebrow" style={{ color: 'var(--gold-soft)' }}>
+                    Grand Dining Menu &middot; 100 Handcrafted Dishes
+                  </span>
+                  <h1 style={{ marginTop: 6 }}>DINEVO Grand Dining House</h1>
+                  <p className="sub">Explore 12 signature global categories curated by our Master Chefs</p>
+                </>
+              )}
             </div>
-            <span
-              className="dv-table-chip"
-              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
-            >
-              Table {session.tableNumber} &middot; #{session.sessionCode}
-            </span>
+            {session ? (
+              <span
+                className="dv-table-chip"
+                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+              >
+                Table {session.tableNumber} &middot; #{session.sessionCode}
+              </span>
+            ) : (
+              <Link
+                to="/table"
+                className="btn-dv btn-outline"
+                style={{ padding: '8px 18px', fontSize: '0.82rem', borderColor: 'rgba(255,215,0,0.4)', color: 'var(--gold-soft)' }}
+              >
+                Connect to Dining Table
+              </Link>
+            )}
           </div>
 
           <div className="dv-search-bar">
             <SearchIcon />
             <input
-              placeholder="Search dishes, ingredients, e.g. Burger, Salmon, Biryani, Truffle..."
+              placeholder="Search dishes, ingredients, e.g. Wagyu, Lobster, Biryani, Truffle, Mojito..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -138,52 +153,108 @@ export default function Menu() {
 
       <div className="dv-cat-bar">
         <div className="container-dv">
-          <div className="dv-cat-scroll" style={{ marginBottom: 10 }}>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                className={`dv-cat-chip ${category === cat ? 'active' : ''}`}
-                onClick={() => setCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
+          <div className="dv-cat-scroll" style={{ marginBottom: 14 }}>
+            {categories.map((cat) => {
+              const count = cat === 'All' ? items.length : items.filter((i) => i.category === cat).length;
+              return (
+                <button
+                  key={cat}
+                  className={`dv-cat-chip ${category === cat ? 'active' : ''}`}
+                  onClick={() => setCategory(cat)}
+                >
+                  {cat} <span style={{ opacity: 0.75, fontSize: '0.78rem', marginLeft: 4 }}>({count})</span>
+                </button>
+              );
+            })}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', fontSize: '0.8rem' }}>
-            <span style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>Filter:</span>
-            {[
-              { id: 'All', label: 'All Items' },
-              { id: 'Signature', label: '★ Signature' },
-              { id: 'Veg', label: '🟢 Veg Only' },
-              { id: 'NonVeg', label: '🔴 Non-Veg' },
-              { id: 'Spicy', label: '🌶️ Spicy Only' }
-            ].map((f) => (
-              <button
-                key={f.id}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, fontSize: '0.8rem' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>Filter:</span>
+              {[
+                { id: 'All', label: 'All Items' },
+                { id: 'Signature', label: '★ Signature' },
+                { id: 'Veg', label: '🟢 Veg Only' },
+                { id: 'NonVeg', label: '🔴 Non-Veg' },
+                { id: 'Spicy', label: '🌶️ Spicy Only' }
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  style={{
+                    background: dietFilter === f.id ? 'var(--espresso)' : 'var(--surface)',
+                    color: dietFilter === f.id ? 'var(--cream)' : 'var(--ink)',
+                    border: '1px solid var(--line)',
+                    borderRadius: 'var(--r-pill)',
+                    padding: '6px 14px',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.15s ease'
+                  }}
+                  onClick={() => setDietFilter(f.id)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: 'var(--ink-soft)', fontWeight: 600 }}>Sort By:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
                 style={{
-                  background: dietFilter === f.id ? 'var(--espresso)' : 'var(--surface)',
-                  color: dietFilter === f.id ? 'var(--cream)' : 'var(--ink)',
+                  background: 'var(--surface)',
+                  color: 'var(--ink)',
                   border: '1px solid var(--line)',
-                  borderRadius: 'var(--r-pill)',
-                  padding: '4px 12px',
-                  fontSize: '0.78rem',
+                  borderRadius: 'var(--r-sm)',
+                  padding: '6px 10px',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  fontWeight: 500
+                  outline: 'none'
                 }}
-                onClick={() => setDietFilter(f.id)}
               >
-                {f.label}
-              </button>
-            ))}
+                <option value="featured">Featured / Default</option>
+                <option value="rating">Top Rated (★ High to Low)</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container-dv">
+      <div className="container-dv" style={{ paddingBottom: 60 }}>
+        {/* Counter Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 16px', color: 'var(--ink-soft)', fontSize: '0.86rem' }}>
+          <span>
+            Showing <strong>{filtered.length}</strong> of {items.length} gourmet creations
+          </span>
+          {(category !== 'All' || dietFilter !== 'All' || query) && (
+            <button
+              onClick={() => {
+                setCategory('All');
+                setDietFilter('All');
+                setQuery('');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--burgundy)',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                cursor: 'pointer'
+              }}
+            >
+              Reset Filters ✕
+            </button>
+          )}
+        </div>
+
         {loading ? (
           <div className="dv-loading-screen">
-            <span className="dv-spinner" /> Loading full restaurant menu...
+            <span className="dv-spinner" /> Loading 100 luxury dining dishes...
           </div>
         ) : error ? (
           <div className="dv-empty">
@@ -192,8 +263,19 @@ export default function Menu() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="dv-empty">
-            <h3>No dishes match your filters</h3>
+            <h3>No dishes match your selected filters</h3>
             <p>Try clearing search keywords or switching category filters.</p>
+            <button
+              onClick={() => {
+                setCategory('All');
+                setDietFilter('All');
+                setQuery('');
+              }}
+              className="btn-dv btn-burgundy"
+              style={{ marginTop: 14 }}
+            >
+              View All Dishes
+            </button>
           </div>
         ) : (
           <div className="dv-menu-grid">

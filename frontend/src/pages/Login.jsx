@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import axios from 'axios';
+import api, { RENDER_PRODUCTION_API_URL } from '../api/axios';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -28,7 +29,7 @@ export default function Login() {
       } catch (primaryErr) {
         if (!primaryErr.response && api.defaults.baseURL !== RENDER_PRODUCTION_API_URL) {
           try {
-            const renderAxios = (await import('axios')).default.create({ baseURL: RENDER_PRODUCTION_API_URL, timeout: 10000 });
+            const renderAxios = axios.create({ baseURL: RENDER_PRODUCTION_API_URL, timeout: 10000 });
             res = await renderAxios.post('/auth/login', { email: cleanEmail, password: cleanPassword });
           } catch (secErr) {
             throw primaryErr;
@@ -66,17 +67,14 @@ export default function Login() {
 
   return (
     <div className="dv-login-page">
-      <div className="dv-login-bg">
-        <div className="dv-login-glow g1" />
-        <div className="dv-login-glow g2" />
-      </div>
-
-      <div className="dv-login-card">
+      <div className="dv-login-card" style={{ background: '#16141D', border: '1px solid rgba(255, 215, 0, 0.22)', color: '#FAF6F0', boxShadow: '0 25px 70px rgba(0,0,0,0.7)' }}>
         <div className="dv-login-header">
           <div className="dv-logo" style={{ fontSize: '2.6rem', marginBottom: 4 }}>
             DINE<span style={{ color: 'var(--gold)' }}>VO</span>
           </div>
-          <div className="dv-login-subtitle">Restaurant Operations</div>
+          <div className="dv-login-subtitle" style={{ color: 'var(--gold-soft)' }}>
+            Hospitality Operations & Kitchen Management
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="dv-login-form">
@@ -87,10 +85,11 @@ export default function Login() {
           )}
 
           <div className="dv-login-field">
-            <label>Email Address</label>
+            <label style={{ color: '#FAF6F0' }}>Staff Email Address</label>
             <input
               type="email"
               className="dv-input"
+              style={{ background: '#201D29', borderColor: 'rgba(255,255,255,0.15)', color: '#FAF6F0' }}
               placeholder="admin@dinevo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -100,11 +99,12 @@ export default function Login() {
           </div>
 
           <div className="dv-login-field">
-            <label>Password</label>
+            <label style={{ color: '#FAF6F0' }}>Security Password</label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
                 className="dv-input"
+                style={{ background: '#201D29', borderColor: 'rgba(255,255,255,0.15)', color: '#FAF6F0' }}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -115,7 +115,7 @@ export default function Login() {
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-soft)',
+                  background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-soft)',
                   fontSize: '0.82rem', fontWeight: 600
                 }}
               >
@@ -126,16 +126,15 @@ export default function Login() {
 
           <button
             type="submit"
-            className="btn-dv btn-burgundy btn-block"
+            className="btn-dv btn-gold btn-block"
             disabled={loading}
-            style={{ marginTop: 8, padding: '14px', fontSize: '1.05rem', fontWeight: 700 }}
+            style={{ marginTop: 10, padding: '14px', fontSize: '1.02rem', fontWeight: 800, letterSpacing: '0.04em' }}
           >
-            {loading ? <span className="dv-spinner" /> : 'LOGIN'}
+            {loading ? <span className="dv-spinner" /> : 'AUTHENTICATE & ENTER'}
           </button>
 
-          <div className="dv-login-hint">
-            <span style={{ color: 'var(--ink-faint)' }}>Demo credentials:</span>{' '}
-            <strong>admin@dinevo.com</strong> / <strong>dinevo123</strong>
+          <div style={{ textAlign: 'center', marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.08)', fontSize: '0.76rem', color: 'var(--ink-faint)', lineHeight: 1.5 }}>
+            Authorized Personnel Only &middot; 256-Bit Encrypted Session
           </div>
         </form>
       </div>

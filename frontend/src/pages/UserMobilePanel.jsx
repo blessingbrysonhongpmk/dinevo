@@ -43,16 +43,17 @@ export default function UserMobilePanel({ embedded = false }) {
   const [categories, setCategories] = useState([
     'All',
     'Signature',
-    'Biryani',
-    'Mandi',
-    'Parotta & Gravy',
-    'Dosa & South Indian',
-    'Starters',
-    'Grills & Tandoor',
-    'Seafood',
-    'Kanyakumari Specials',
-    'Juices & Cool Drinks',
-    'Desserts'
+    'Arabian Mandi',
+    'Royal Biryani',
+    'South Indian Heritage',
+    'Tandoor & Grills',
+    'Gourmet Burgers',
+    'Artisanal Pizzas & Pastas',
+    'Pan-Asian & Wok',
+    'Starters & Tapas',
+    'Fresh Bowls & Salads',
+    '5-Star Desserts',
+    'Mocktails & Brews'
   ]);
 
   const [activeCategory, setActiveCategory] = useState('All');
@@ -110,16 +111,17 @@ export default function UserMobilePanel({ embedded = false }) {
       const categoryOrder = [
         'All',
         'Signature',
-        'Biryani',
-        'Mandi',
-        'Parotta & Gravy',
-        'Dosa & South Indian',
-        'Starters',
-        'Grills & Tandoor',
-        'Seafood',
-        'Kanyakumari Specials',
-        'Juices & Cool Drinks',
-        'Desserts'
+        'Arabian Mandi',
+        'Royal Biryani',
+        'South Indian Heritage',
+        'Tandoor & Grills',
+        'Gourmet Burgers',
+        'Artisanal Pizzas & Pastas',
+        'Pan-Asian & Wok',
+        'Starters & Tapas',
+        'Fresh Bowls & Salads',
+        '5-Star Desserts',
+        'Mocktails & Brews'
       ];
       const rawCats = Array.from(new Set(uniqueItems.map((i) => i.category).filter(Boolean)));
       const sortedCats = ['All', ...categoryOrder.filter(c => c !== 'All' && rawCats.includes(c)), ...rawCats.filter(c => !categoryOrder.includes(c))];
@@ -133,16 +135,17 @@ export default function UserMobilePanel({ embedded = false }) {
       const categoryOrder = [
         'All',
         'Signature',
-        'Biryani',
-        'Mandi',
-        'Parotta & Gravy',
-        'Dosa & South Indian',
-        'Starters',
-        'Grills & Tandoor',
-        'Seafood',
-        'Kanyakumari Specials',
-        'Juices & Cool Drinks',
-        'Desserts'
+        'Arabian Mandi',
+        'Royal Biryani',
+        'South Indian Heritage',
+        'Tandoor & Grills',
+        'Gourmet Burgers',
+        'Artisanal Pizzas & Pastas',
+        'Pan-Asian & Wok',
+        'Starters & Tapas',
+        'Fresh Bowls & Salads',
+        '5-Star Desserts',
+        'Mocktails & Brews'
       ];
       const rawCats = Array.from(new Set(uniqueFallback.map((i) => i.category).filter(Boolean)));
       const sortedCats = ['All', ...categoryOrder.filter(c => c !== 'All' && rawCats.includes(c)), ...rawCats.filter(c => !categoryOrder.includes(c))];
@@ -310,7 +313,7 @@ export default function UserMobilePanel({ embedded = false }) {
       tipAmount: extraOptions.tipAmount || tipAmount || 0,
       grandTotal: cartTotal + (extraOptions.tipAmount || tipAmount || 0),
       currency: 'INR',
-      gateway: 'DINEVO 256-Bit POS Gateway (Demo Instant Pay)',
+      gateway: 'DINEVO 256-Bit Encrypted POS Gateway (Direct UPI / Card)',
       verified: true
     };
 
@@ -322,7 +325,7 @@ export default function UserMobilePanel({ embedded = false }) {
         restaurantId: sessionData?.restaurantId,
         tableNumber: currentTable.tableNumber,
         tableCode: currentTable.code,
-        sessionCode: sessionData?.sessionCode || 'DEMO',
+        sessionCode: sessionData?.sessionCode || 'LIVE',
         items: cart.map((c) => ({
           menuItem: c._id,
           name: c.name,

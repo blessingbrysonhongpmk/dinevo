@@ -7,8 +7,6 @@ export default function Cart() {
   const { session, items, updateQuantity, removeItem, totals } = useCart();
   const navigate = useNavigate();
 
-  if (!session) return <Navigate to="/table" replace />;
-
   if (items.length === 0) {
     return (
       <div className="container-dv">
@@ -18,7 +16,9 @@ export default function Cart() {
           </div>
           <h2 style={{ fontSize: '1.5rem' }}>Your order is empty</h2>
           <p style={{ color: 'var(--ink-soft)', marginTop: 8 }}>
-            Explore the menu and add dishes to Table {session.tableNumber} &middot; Session #{session.sessionCode}.
+            {session
+              ? `Explore the menu and add dishes to Table ${session.tableNumber} · Session #${session.sessionCode}.`
+              : 'Explore the 100-dish menu and select your gourmet choices.'}
           </p>
           <Link to="/menu" className="btn-dv btn-burgundy" style={{ marginTop: 22, padding: '12px 28px' }}>
             Browse Restaurant Menu
@@ -40,11 +40,17 @@ export default function Cart() {
             <ArrowLeft /> Back to menu
           </button>
           <span className="eyebrow">
-            Table {session.tableNumber} &middot; Session #{session.sessionCode}
+            {session ? `Table ${session.tableNumber} · Session #${session.sessionCode}` : 'Guest Dining Order'}
           </span>
           <h1 style={{ marginTop: 6, fontSize: '1.9rem' }}>Review Table Order</h1>
         </div>
-        <span className="dv-table-chip">Table {session.tableNumber}</span>
+        {session ? (
+          <span className="dv-table-chip">Table {session.tableNumber}</span>
+        ) : (
+          <Link to="/table" className="dv-table-chip" style={{ textDecoration: 'none' }}>
+            Connect Dining Table
+          </Link>
+        )}
       </div>
 
       <div className="dv-cart-layout">
@@ -126,9 +132,15 @@ export default function Cart() {
           <button
             className="btn-dv btn-burgundy btn-block"
             style={{ marginTop: 22, padding: '14px 20px', fontSize: '1.02rem' }}
-            onClick={() => navigate('/checkout')}
+            onClick={() => {
+              if (!session) {
+                navigate('/table');
+              } else {
+                navigate('/checkout');
+              }
+            }}
           >
-            Proceed to Checkout
+            {session ? 'Proceed to Checkout' : 'Connect Table to Order'}
           </button>
 
           <p style={{ fontSize: '0.78rem', color: 'var(--ink-faint)', textAlign: 'center', marginTop: 14 }}>

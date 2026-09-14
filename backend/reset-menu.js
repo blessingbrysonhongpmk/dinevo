@@ -17,7 +17,7 @@ async function resetMenu() {
     rest = await Restaurant.create(defaultRestaurant);
   }
 
-  console.log('4. Inserting 37 clean curated food items across 11 categories...');
+  console.log(`4. Inserting ${defaultItems.length} clean curated food items across 12 categories...`);
   const itemsToInsert = defaultItems.map((item) => ({
     ...item,
     restaurant: rest._id

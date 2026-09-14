@@ -736,6 +736,7 @@
   letter-spacing: 0.22em;
   background: var(--grad-gold);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -1424,52 +1425,9 @@
   gap: 0;
 }
 
-/* DEMO PROTOTYPE LAYOUT */
-.dv-demo-wrap {
-  display: flex;
-  min-height: 100vh;
-  background: #09080C;
-  overflow-x: hidden;
-}
-.dv-demo-admin {
-  flex: 1;
-  min-width: 0;
-  overflow-y: auto;
-}
-.dv-demo-mobile {
-  flex: 0 0 auto;
-  width: min(580px, 100%);
-  background: #15131C;
-  border-left: 1px solid rgba(255,255,255,0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 16px;
-  box-sizing: border-box;
-  height: 100vh;
-  position: sticky;
-  top: 0;
-}
-.admin-nav-btn {
-  display: none;
-}
-@media (min-width: 900px) {
-  .admin-nav-btn {
-    display: inline-block;
-  }
-}
-.dv-demo-mobile-label {
-  color: #F77F00;
-  font-size: 0.85rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 14px;
-}
 
 /* ============================================================
-   4 CRORE LUXURY OBSIDIAN DARK USER MOBILE PANEL STYLES (v40)
+   DINEVO BESPOKE TABLESIDE HOSPITALITY CONSOLE STYLES
    ============================================================ */
 .v40-wrap {
   display: flex;
@@ -2184,34 +2142,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1A1721;
+  background: radial-gradient(circle at 50% 30%, #1D1826 0%, #0D0B12 100%);
   position: relative;
   overflow: hidden;
   padding: 20px;
 }
-.dv-login-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.dv-login-glow {
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.15;
-}
-.dv-login-glow.g1 { background: #E63946; top: -100px; left: -100px; }
-.dv-login-glow.g2 { background: #F77F00; bottom: -100px; right: -100px; }
-
 .dv-login-card {
   width: 100%;
-  max-width: 400px;
-  background: #FFFFFF;
+  max-width: 420px;
+  background: #16141D;
+  border: 1px solid rgba(255, 215, 0, 0.22);
   border-radius: 28px;
-  padding: 36px 30px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  padding: 40px 32px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
   position: relative;
   z-index: 10;
 }

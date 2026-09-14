@@ -7,13 +7,24 @@ const PaymentModel = require('../models/Payment');
 
 let isConnected = false;
 
-// In-Memory fallback data store
+const { defaultItems, defaultRestaurant } = require('../seed/catalog_100');
+
+const initialRestId = '65d100000000000000000001';
+
+// In-Memory fallback data store pre-populated with 100 luxury items and tables
 const memoryDb = {
-  restaurants: [],
-  menuItems: [],
+  restaurants: [{ ...defaultRestaurant, _id: initialRestId, createdAt: new Date(), updatedAt: new Date() }],
+  menuItems: defaultItems.map((item, idx) => ({
+    _id: `item-${String(idx + 1).padStart(3, '0')}`,
+    ...item,
+    restaurant: initialRestId,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  })),
   sessions: [],
   orders: [],
-  payments: []
+  payments: [],
+  customers: []
 };
 
 function generateId() {
@@ -780,6 +791,21 @@ const dbStore = {
     return await this.updateFoodItem(id, { isAvailable });
   },
 
+  lookupMemoryCustomer(phone) {
+    let cust = memoryDb.customers.find((c) => c.phoneNumber === phone);
+    if (!cust) {
+      cust = { _id: generateId(), phoneNumber: phone, loyaltyPoints: 0, createdAt: new Date() };
+      memoryDb.customers.push(cust);
+    }
+    return cust;
+  },
+
+  addMemoryCustomerPoints(phone, pointsToAdd) {
+    let cust = this.lookupMemoryCustomer(phone);
+    cust.loyaltyPoints = (cust.loyaltyPoints || 0) + pointsToAdd;
+    return cust;
+  },
+
   async clearAll() {
     if (this.isDbConnected()) {
       await RestaurantModel.deleteMany({});
@@ -793,6 +819,7 @@ const dbStore = {
     memoryDb.sessions = [];
     memoryDb.orders = [];
     memoryDb.payments = [];
+    memoryDb.customers = [];
   }
 };
 

@@ -1,175 +1,165 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { QrIcon } from './Icons';
-import { getQrTargetUrl } from '../utils/qrUrl';
+import { QrIcon, UtensilsIcon } from './Icons';
 
 export default function HeroSection({ session }) {
-  const [showQrModal, setShowQrModal] = useState(false);
-  const [customHost, setCustomHost] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    // Default host to current origin or stored URL
-    const savedHost = localStorage.getItem('dinevo_public_url');
-    if (savedHost) {
-      setCustomHost(savedHost);
-    }
-  }, []);
-
-  const handleHostChange = (e) => {
-    const val = e.target.value;
-    setCustomHost(val);
-    localStorage.setItem('dinevo_public_url', val);
-  };
-
-  const handleScanClick = () => {
-    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmall = window.innerWidth <= 768;
-    if (isTouch && isSmall) {
-      navigate('/table');
-    } else {
-      setShowQrModal(true);
-    }
-  };
-
-  const sampleQrUrl = getQrTargetUrl('DINEVO-T01', customHost || null);
-  const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=H&margin=10&data=${encodeURIComponent(sampleQrUrl)}`;
 
   return (
     <section className="dv-hero" style={{ padding: '60px 0 40px' }}>
-      <div className="container-dv" style={{ maxWidth: '1100px' }}>
+      <div className="container-dv" style={{ maxWidth: '1140px' }}>
         <div
           className="card-dv"
           style={{
-            background: 'linear-gradient(135deg, #1A1721 0%, #2A2433 100%)',
+            background: 'linear-gradient(145deg, #16141D 0%, #221E2C 100%)',
             color: '#FAF6F0',
             borderRadius: '28px',
-            padding: '40px 30px',
+            padding: '56px 36px',
             textAlign: 'center',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
-            border: '2px solid rgba(247,127,0,0.25)',
-            backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(247,127,0,0.15), transparent 70%), url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1600&auto=format&fit=crop")',
+            boxShadow: '0 30px 80px rgba(0,0,0,0.45)',
+            border: '1px solid rgba(255,215,0,0.22)',
+            backgroundImage:
+              'radial-gradient(circle at 50% 25%, rgba(247,127,0,0.18), transparent 75%), url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1600&auto=format&fit=crop")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             position: 'relative',
             overflow: 'hidden'
           }}
         >
-          {/* Dark Overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(26,23,33,0.85)', backdropFilter: 'blur(3px)', zIndex: 1 }} />
+          {/* Atmospheric Luxury Dark Overlay */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(180deg, rgba(16,14,21,0.86) 0%, rgba(20,17,28,0.94) 100%)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 1
+            }}
+          />
 
           <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div className="dv-logo" style={{ fontSize: '3.2rem', marginBottom: 4 }}>
-              DINE<span style={{ color: 'var(--gold, #F77F00)' }}>VO</span>
-            </div>
-            <h2 style={{ fontSize: '1.2rem', textTransform: 'uppercase', letterSpacing: '0.18em', color: 'rgba(250,246,240,0.8)', fontWeight: 700, marginBottom: 16 }}>
-              PREMIUM DIGITAL DINING
-            </h2>
-
-            <p style={{ fontSize: '1.15rem', color: 'rgba(250,246,240,0.9)', maxWidth: '540px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-              Scan the QR code below on your phone camera to open Table 01 ordering session directly!
-            </p>
-
-            {/* LIVE SCANNABLE TABLE QR CODE ON FRONT PAGE */}
+            {/* Crown / Eyebrow */}
             <div
               style={{
-                background: '#FFFFFF',
-                borderRadius: '24px',
-                padding: '20px',
-                boxShadow: '0 15px 45px rgba(0,0,0,0.5)',
-                border: '3px solid var(--gold, #F77F00)',
-                marginBottom: '20px',
-                maxWidth: '280px',
-                width: '100%'
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '6px 18px',
+                borderRadius: '999px',
+                background: 'rgba(255,215,0,0.1)',
+                border: '1px solid rgba(255,215,0,0.3)',
+                color: 'var(--gold-soft)',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                marginBottom: 20
               }}
             >
-              <img
-                src={qrImageSrc}
-                alt="Table 01 QR Code"
-                style={{ width: '220px', height: '220px', display: 'block', margin: '0 auto', borderRadius: '12px' }}
-              />
-              <div style={{ color: '#1A1721', fontSize: '0.9rem', fontWeight: 900, marginTop: 12, letterSpacing: '0.05em' }}>
-                TABLE 01 QR CODE
-              </div>
-              <div style={{ color: '#666', fontSize: '0.75rem', fontWeight: 600, marginBottom: 8 }}>
-                Scan with your phone camera
-              </div>
-
-              {/* Host URL configurator for local IP / Vercel deployment */}
-              <div style={{ marginTop: 8, textAlign: 'left' }}>
-                <label style={{ fontSize: '0.68rem', fontWeight: 800, color: '#444', textTransform: 'uppercase' }}>QR Target Host (Vercel / IP)</label>
-                <input
-                  className="dv-input"
-                  style={{ padding: '6px 10px', fontSize: '0.75rem', marginTop: 2, background: '#F5F2EC', borderColor: '#DDD', color: '#111' }}
-                  value={customHost}
-                  onChange={handleHostChange}
-                  placeholder="https://dinevo.vercel.app"
-                />
-              </div>
+              ★ Fine Dining & Tableside Gastronomy ★
             </div>
 
-            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
-              <button
+            {/* Brand Title */}
+            <h1
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(2.4rem, 5vw, 4rem)',
+                fontWeight: 800,
+                color: '#FAF6F0',
+                lineHeight: 1.15,
+                maxWidth: '850px',
+                margin: '0 auto 16px',
+                letterSpacing: '-0.01em'
+              }}
+            >
+              Exquisite Flavors, Handcrafted for Every Moment
+            </h1>
+
+            {/* Subtitle */}
+            <p
+              style={{
+                fontSize: 'clamp(1rem, 2vw, 1.18rem)',
+                color: 'rgba(250,246,240,0.85)',
+                maxWidth: '640px',
+                margin: '0 auto 32px',
+                lineHeight: 1.65,
+                fontWeight: 400
+              }}
+            >
+              Explore 100 chef-curated culinary creations, artisanal fire grills, and royal heritage spices. Order directly from your seat with seamless tableside hospitality.
+            </p>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 36 }}>
+              <Link
+                to="/menu"
                 className="btn-dv btn-gold"
-                style={{ padding: '14px 32px', fontSize: '1rem', fontWeight: 800 }}
-                onClick={handleScanClick}
+                style={{
+                  padding: '16px 36px',
+                  fontSize: '1.02rem',
+                  fontWeight: 800,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: '0 12px 30px rgba(247,127,0,0.35)'
+                }}
               >
-                <QrIcon width={20} height={20} /> SCAN TABLE QR
-              </button>
+                <UtensilsIcon width={18} height={18} />
+                Explore Grand Menu
+              </Link>
 
               <Link
-                to="/user"
+                to="/table"
                 className="btn-dv btn-outline"
-                style={{ padding: '14px 32px', fontSize: '1rem', fontWeight: 800, color: '#FAF6F0', borderColor: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.08)' }}
+                style={{
+                  padding: '16px 32px',
+                  fontSize: '1.02rem',
+                  fontWeight: 700,
+                  color: '#FAF6F0',
+                  borderColor: 'rgba(255,255,255,0.35)',
+                  background: 'rgba(255,255,255,0.06)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  backdropFilter: 'blur(8px)'
+                }}
               >
-                OPEN CUSTOMER USER PANEL
+                <QrIcon width={18} height={18} />
+                {session ? `Table ${session.tableNumber} Session` : 'Order at Table'}
               </Link>
             </div>
 
-            {/* Bottom 4-step process bar */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.12)', fontSize: '0.85rem', color: 'rgba(250,246,240,0.85)', fontWeight: 600 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>1. Scan Table QR</span>
-              <span style={{ opacity: 0.5 }}>→</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>2. Select Gourmet Food</span>
-              <span style={{ opacity: 0.5 }}>→</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>3. Pay Securely</span>
-              <span style={{ opacity: 0.5 }}>→</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>4. Freshly Served</span>
+            {/* Hospitality Badges */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 24,
+                flexWrap: 'wrap',
+                paddingTop: 24,
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                fontSize: '0.85rem',
+                color: 'rgba(250,246,240,0.85)',
+                fontWeight: 600
+              }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: 'var(--gold)' }}>✦</span> 100 Signature Dishes
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: 'var(--gold)' }}>✦</span> 12 World Cuisines
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: 'var(--gold)' }}>✦</span> Contactless Tableside Service
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: 'var(--gold)' }}>✦</span> Live Kitchen Dispatch
+              </span>
             </div>
           </div>
         </div>
       </div>
-
-      {/* SCAN EXPLANATION MODAL (ON DESKTOP) */}
-      {showQrModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', padding: '20px' }}>
-          <div style={{ background: '#FFFFFF', borderRadius: '20px', padding: '32px', maxWidth: '420px', width: '100%', textAlign: 'center', color: '#18151E', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-              <QrIcon width={42} height={42} style={{ color: 'var(--gold)' }} />
-            </div>
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, marginBottom: 10, fontFamily: 'var(--font-display)' }}>SCAN TABLE 01 QR CODE</h3>
-            <p style={{ fontSize: '0.9rem', color: '#555555', lineHeight: 1.5, marginBottom: 16 }}>
-              Use your phone camera to scan the Table 01 QR code displayed on the front page to launch your mobile session directly.
-            </p>
-            <div style={{ background: '#FAF6F0', padding: 14, borderRadius: 14, border: '1px solid #E5DECF', marginBottom: 16 }}>
-              <img src={qrImageSrc} alt="Table 01 QR" style={{ width: '160px', height: '160px', margin: '0 auto', display: 'block' }} />
-              <div style={{ fontSize: '0.72rem', color: '#555', marginTop: 8, wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                🔗 {sampleQrUrl}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <Link to="/user" className="btn-dv btn-gold btn-block" onClick={() => setShowQrModal(false)}>
-                Open Customer User Panel
-              </Link>
-              <button className="btn-dv btn-outline btn-block" onClick={() => setShowQrModal(false)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </section>
   );
 }

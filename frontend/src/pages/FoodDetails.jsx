@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { useCart } from '../context/CartContext';
 import { ArrowLeft, ClockIcon, StarIcon, FlameIcon, ShieldCheckIcon } from '../components/Icons';
 import Toast from '../components/Toast';
+import { FALLBACK_MENU_ITEMS } from '../data/fallbackMenu';
 
 export default function FoodDetails() {
   const { id } = useParams();
@@ -25,12 +26,27 @@ export default function FoodDetails() {
     api
       .get(`/foods/${id}`)
       .then((res) => {
-        setItem(res.data);
-        const defaultSpice =
-          res.data.spiceLevel === 0 ? 'Mild' : res.data.spiceLevel === 1 ? 'Mild' : res.data.spiceLevel === 2 ? 'Medium' : res.data.spiceLevel === 3 ? 'Hot' : 'Extra Hot';
-        setSpiceLevel(defaultSpice);
+        const foodData = res.data;
+        if (foodData) {
+          setItem(foodData);
+          const defaultSpice =
+            foodData.spiceLevel === 0 ? 'Mild' : foodData.spiceLevel === 1 ? 'Mild' : foodData.spiceLevel === 2 ? 'Medium' : foodData.spiceLevel === 3 ? 'Hot' : 'Extra Hot';
+          setSpiceLevel(defaultSpice);
+        } else {
+          throw new Error('Empty response');
+        }
       })
-      .catch(() => setError(true))
+      .catch(() => {
+        const fallback = FALLBACK_MENU_ITEMS.find((f) => f._id === id || f.name.toLowerCase() === (id || '').toLowerCase());
+        if (fallback) {
+          setItem(fallback);
+          const defaultSpice =
+            fallback.spiceLevel === 0 ? 'Mild' : fallback.spiceLevel === 1 ? 'Mild' : fallback.spiceLevel === 2 ? 'Medium' : fallback.spiceLevel === 3 ? 'Hot' : 'Extra Hot';
+          setSpiceLevel(defaultSpice);
+        } else {
+          setError(true);
+        }
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -82,7 +98,7 @@ export default function FoodDetails() {
     );
   }
 
-  const isSignature = item.isSignature || item.category.toLowerCase() === 'signature';
+  const isSignature = Boolean(item?.isSignature || item?.category?.toLowerCase()?.includes('signature'));
 
   return (
     <div className="container-dv">

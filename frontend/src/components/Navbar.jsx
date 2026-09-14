@@ -16,11 +16,11 @@ export default function Navbar() {
           <Link to="/" className="dv-logo">
             DINE<span>VO</span>
           </Link>
-          <nav style={{ display: 'flex', gap: 16, fontSize: '0.88rem', color: 'var(--cream)', opacity: 0.9 }}>
-            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>Home</Link>
-            <Link to="/user" style={{ textDecoration: 'none', color: '#FFD700', fontWeight: 700 }}>User Panel</Link>
-            <Link to={session ? "/menu" : "/table"} style={{ textDecoration: 'none', color: 'inherit' }}>Menu</Link>
-            <Link to="/admin" style={{ textDecoration: 'none', color: 'var(--gold-soft)', display: 'flex', alignItems: 'center', gap: 5, fontWeight: 600 }}>
+          <nav style={{ display: 'flex', gap: 20, fontSize: '0.92rem', color: 'var(--cream)', alignItems: 'center' }}>
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>Home</Link>
+            <Link to="/table" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>Scanner</Link>
+            <Link to="/menu" style={{ textDecoration: 'none', color: 'inherit', fontWeight: 500 }}>Menu</Link>
+            <Link to="/admin" style={{ textDecoration: 'none', color: 'var(--gold-soft)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 5 }}>
               <KitchenIcon width={14} height={14} /> Admin Portal
             </Link>
           </nav>
@@ -44,6 +44,26 @@ export default function Navbar() {
               {totals.count > 0 && <span className="dv-cart-badge">{totals.count}</span>}
             </Link>
           )}
+
+          <Link
+            to="/login"
+            title="Restaurant Management & Staff Access"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              color: 'var(--gold-soft)',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              border: '1px solid rgba(255,215,0,0.2)',
+              background: 'rgba(255,215,0,0.06)',
+              letterSpacing: '0.04em'
+            }}
+          >
+            Staff
+          </Link>
         </div>
 
       </div>

@@ -8,6 +8,8 @@ export default function FoodCard({ item }) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
 
+  if (!item) return null;
+
   const handleAdd = (e) => {
     e.stopPropagation();
     addItem(item, 1, {
@@ -19,9 +21,8 @@ export default function FoodCard({ item }) {
     setTimeout(() => setAdded(false), 1200);
   };
 
-  const isSignature = item.isSignature || item.category.toLowerCase() === 'signature';
-  const isSpicy = item.isSpicy || item.spiceLevel > 1;
-
+  const isSignature = Boolean(item.isSignature || item.category?.toLowerCase()?.includes('signature'));
+  const isSpicy = Boolean(item.isSpicy || (Number(item.spiceLevel) > 1));
   const isAvailable = item.available !== false && item.isAvailable !== false;
 
   return (
@@ -98,4 +99,3 @@ export default function FoodCard({ item }) {
     </div>
   );
 }
-

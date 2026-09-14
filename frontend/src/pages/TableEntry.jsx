@@ -308,13 +308,13 @@ export default function TableEntry() {
                     gap: 8
                   }}
                 >
-                  🌐 REMOTE LONG-DISTANCE TABLE BOOKING & PRE-ORDER
+                  🌐 ADVANCE TABLE RESERVATION & PRE-ORDER
                 </button>
 
                 {/* 1-TAP QUICK TABLE SELECTION FOR LOCALHOST & MOBILE */}
                 <div style={{ marginTop: 10, paddingTop: 14, borderTop: '1px dashed rgba(255,255,255,0.15)', textAlign: 'left' }}>
                   <div style={{ fontSize: '0.76rem', color: '#FFD700', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-                    ⚡ Direct Table Express Selection:
+                    ⚡ Select Your Dining Table:
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                     {['01', '02', '03', '04', '05', '06', '07', '08'].map((num) => (
@@ -341,11 +341,11 @@ export default function TableEntry() {
                 </div>
 
                 <Link
-                  to="/user"
+                  to="/menu"
                   className="btn-dv btn-outline btn-block"
                   style={{ padding: '14px', fontSize: '0.92rem', fontWeight: 800, color: '#FFF', borderColor: 'rgba(255,255,255,0.2)', marginTop: 8 }}
                 >
-                  OPEN USER PANEL (DEMO)
+                  BROWSE FULL MENU FIRST
                 </Link>
               </div>
             </div>
@@ -360,13 +360,13 @@ export default function TableEntry() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', padding: '20px' }}>
           <div style={{ background: '#17151F', border: '1px solid rgba(255,215,0,0.3)', borderRadius: '24px', padding: '32px', maxWidth: '400px', width: '100%', textAlign: 'center', color: '#FFFFFF', boxShadow: '0 25px 60px rgba(0,0,0,0.5)' }}>
             <div style={{ fontSize: '3rem', marginBottom: 12 }}>📱</div>
-            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 10, color: '#FFD700' }}>PHYSICAL PHONE CAMERA SCAN</h3>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 10, color: '#FFD700' }}>SCAN TABLE QR CODE</h3>
             <p style={{ fontSize: '0.88rem', color: '#A0A0B0', lineHeight: 1.5, marginBottom: 24 }}>
-              To scan a real table QR code, use your mobile phone camera to scan the printed table QR code from the Admin Panel.
+              Point your smartphone camera at the QR code placed on your dining table to immediately open your table's dedicated menu and live ordering session.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <Link to="/user" className="v40-primary-cta" onClick={() => setShowQrModal(false)}>
-                Open User Mobile Interface
+                Open Digital Table Menu
               </Link>
               <button className="btn-dv btn-outline btn-block" style={{ color: '#AAA', borderColor: 'rgba(255,255,255,0.2)' }} onClick={() => setShowQrModal(false)}>
                 Close
