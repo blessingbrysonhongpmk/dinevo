@@ -115,7 +115,7 @@ export default function Home() {
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',
         color: '#FAF6F0',
-        padding: '40px 20px 60px',
+        padding: '24px 20px 32px',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
@@ -135,413 +135,462 @@ export default function Home() {
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '1100px' }}>
-        {/* Brand Banner */}
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 20px',
-              borderRadius: '999px',
-              background: 'rgba(255, 215, 0, 0.1)',
-              border: '1px solid rgba(255, 215, 0, 0.3)',
-              color: 'var(--gold-soft)',
-              fontSize: '0.8rem',
-              fontWeight: 800,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              marginBottom: 14
-            }}
-          >
-            ★ DINEVO GRAND DINING & OPERATIONS ★
-          </div>
-
-          <h1
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)',
-              fontWeight: 800,
-              color: '#FAF6F0',
-              lineHeight: 1.18,
-              margin: '0 auto 12px',
-              maxWidth: '820px',
-              letterSpacing: '-0.01em'
-            }}
-          >
-            Scan to Order & Kitchen Operations
-          </h1>
-
-          <p
-            style={{
-              fontSize: 'clamp(0.95rem, 1.8vw, 1.1rem)',
-              color: 'rgba(250, 246, 240, 0.82)',
-              maxWidth: '620px',
-              margin: '0 auto',
-              lineHeight: 1.6
-            }}
-          >
-            Scan the live table QR code below with your mobile phone camera to start dining, or enter the executive admin portal.
-          </p>
-        </div>
-
-        {/* Dual Primary Portals: Scanner & Admin Page */}
-        <div
+      {/* ============================================================ */}
+      {/* TOP-RIGHT CORNER: EXECUTIVE STAFF & KITCHEN CONSOLE */}
+      {/* ============================================================ */}
+      <div className="dv-staff-corner-pill">
+        <Link
+          to="/admin"
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: 28,
-            alignItems: 'stretch'
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '10px 18px',
+            borderRadius: '999px',
+            background: 'linear-gradient(135deg, rgba(30, 20, 26, 0.92) 0%, rgba(20, 15, 20, 0.95) 100%)',
+            border: '1px solid rgba(230, 57, 70, 0.45)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), 0 0 15px rgba(230, 57, 70, 0.15)',
+            color: '#FAF6F0',
+            textDecoration: 'none',
+            backdropFilter: 'blur(10px)',
+            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.borderColor = '#E63946';
+            e.currentTarget.style.boxShadow = '0 12px 30px rgba(230, 57, 70, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.borderColor = 'rgba(230, 57, 70, 0.45)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.5), 0 0 15px rgba(230, 57, 70, 0.15)';
           }}
         >
-          {/* ============================================================ */}
-          {/* PORTAL 1: LIVE SCANNABLE TABLE QR CODE (FOR MOBILE CAMERA) */}
-          {/* ============================================================ */}
           <div
             style={{
-              background: 'linear-gradient(160deg, rgba(26, 23, 34, 0.96) 0%, rgba(18, 16, 24, 0.96) 100%)',
-              border: '1px solid rgba(255, 215, 0, 0.28)',
-              borderRadius: '28px',
-              padding: '32px 26px',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 215, 0, 0.15)',
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #B81D2B 0%, #E63946 100%)',
               display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              position: 'relative'
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFF',
+              boxShadow: '0 2px 8px rgba(230, 57, 70, 0.4)'
             }}
           >
-            <div>
-              {/* Header Row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: '14px',
-                      background: 'rgba(255, 215, 0, 0.12)',
-                      border: '1px solid rgba(255, 215, 0, 0.3)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--gold)'
-                    }}
-                  >
-                    <QrIcon width={22} height={22} />
-                  </div>
-                  <div>
-                    <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#FAF6F0', margin: 0 }}>
-                      Table QR Scanner
-                    </h2>
-                    <span style={{ fontSize: '0.74rem', color: 'var(--gold-soft)', fontWeight: 600 }}>
-                      Live Scannable Mobile Code
-                    </span>
-                  </div>
-                </div>
-
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    color: 'var(--gold-soft)',
-                    background: 'rgba(255, 215, 0, 0.1)',
-                    border: '1px solid rgba(255, 215, 0, 0.25)',
-                    padding: '4px 12px',
-                    borderRadius: '999px'
-                  }}
-                >
-                  Table {selectedTable}
-                </span>
-              </div>
-
-              {/* LIVE SCANNABLE QR CODE DISPLAY CARD */}
-              <div
-                style={{
-                  background: '#FFFFFF',
-                  borderRadius: '22px',
-                  padding: '18px',
-                  boxShadow: '0 15px 40px rgba(0, 0, 0, 0.6)',
-                  border: '3px solid var(--gold)',
-                  textAlign: 'center',
-                  maxWidth: '260px',
-                  margin: '0 auto 18px',
-                  position: 'relative'
-                }}
-              >
-                <img
-                  src={qrImageSrc}
-                  alt={`Table ${selectedTable} QR Code`}
-                  style={{
-                    width: '210px',
-                    height: '210px',
-                    display: 'block',
-                    margin: '0 auto',
-                    borderRadius: '10px'
-                  }}
-                />
-                <div style={{ color: '#16141D', fontSize: '0.92rem', fontWeight: 900, marginTop: 10, letterSpacing: '0.06em' }}>
-                  TABLE {selectedTable} DINING PASS
-                </div>
-                <div style={{ color: '#666666', fontSize: '0.74rem', fontWeight: 700, marginTop: 2 }}>
-                  📱 Scan with your phone camera
-                </div>
-              </div>
-
-              {/* Table Selector Pills */}
-              <div style={{ marginBottom: 16, textAlign: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'rgba(250, 246, 240, 0.7)', fontWeight: 700, display: 'block', marginBottom: 8 }}>
-                  Tap to switch table QR code:
-                </span>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7 }}>
-                  {tableNumbers.map((num) => {
-                    const isSelected = selectedTable === num;
-                    return (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => setSelectedTable(num)}
-                        style={{
-                          padding: '8px 2px',
-                          borderRadius: '10px',
-                          border: isSelected ? '1px solid #FFD700' : '1px solid rgba(255, 215, 0, 0.2)',
-                          background: isSelected ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.3) 0%, rgba(247, 127, 0, 0.3) 100%)' : 'rgba(255, 215, 0, 0.06)',
-                          color: isSelected ? '#FFD700' : '#FAF6F0',
-                          fontWeight: 800,
-                          fontSize: '0.8rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        Table {num}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Network Scan Target Indicator / Selector */}
-              <div
-                style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '12px',
-                  padding: '8px 12px',
-                  marginBottom: 16,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 8,
-                  fontSize: '0.74rem'
-                }}
-              >
-                <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <span style={{ color: 'var(--gold-soft)', fontWeight: 700 }}>Target: </span>
-                  <span style={{ color: 'rgba(250, 246, 240, 0.75)', fontFamily: 'monospace' }}>
-                    {currentQrUrl}
-                  </span>
-                </div>
-                {lanIp && lanIp !== 'localhost' && (
-                  <button
-                    type="button"
-                    onClick={() => setNetworkTarget(networkTarget === 'lan' ? 'origin' : 'lan')}
-                    title="Toggle between Wi-Fi LAN IP and Localhost"
-                    style={{
-                      background: networkTarget === 'lan' ? 'rgba(0, 230, 153, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                      border: networkTarget === 'lan' ? '1px solid #00E699' : '1px solid rgba(255, 255, 255, 0.2)',
-                      color: networkTarget === 'lan' ? '#00E699' : '#FFF',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      fontSize: '0.68rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {networkTarget === 'lan' ? '📶 Wi-Fi IP' : '💻 Local'}
-                  </button>
-                )}
-              </div>
-
-              {/* Action Buttons: Open on this PC or Use Webcam */}
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => handleValidateTable(`DINEVO-T${selectedTable}`)}
-                  disabled={loading}
-                  className="btn-dv btn-gold"
-                  style={{
-                    flex: '1 1 160px',
-                    padding: '13px',
-                    fontSize: '0.92rem',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {loading ? <span className="dv-spinner" /> : `OPEN TABLE ${selectedTable} →`}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowCamera(true)}
-                  className="btn-dv btn-outline"
-                  style={{
-                    padding: '13px 18px',
-                    fontSize: '0.86rem',
-                    fontWeight: 700,
-                    color: '#FAF6F0',
-                    borderColor: 'rgba(255, 255, 255, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    cursor: 'pointer'
-                  }}
-                >
-                  <QrIcon width={16} height={16} /> Webcam Scanner
-                </button>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 18, paddingTop: 12, borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.76rem', color: 'rgba(250, 246, 240, 0.6)' }}>
-                100 Handcrafted Gourmet Dishes
+            <KitchenIcon width={16} height={16} />
+          </div>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, letterSpacing: '0.04em', color: '#FFF' }}>
+                Admin & Kitchen
               </span>
-              <Link to="/menu" style={{ color: 'var(--gold-soft)', fontSize: '0.8rem', textDecoration: 'none', fontWeight: 700 }}>
-                Explore Full Menu →
-              </Link>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: '#00E699',
+                  boxShadow: '0 0 8px #00E699'
+                }}
+              />
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#FF7B85', fontWeight: 600 }}>
+              Staff Console &middot; KDS &middot; POS
             </div>
           </div>
+          <span style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.5)', marginLeft: 4 }}>→</span>
+        </Link>
+      </div>
 
-          {/* ============================================================ */}
-          {/* PORTAL 2: ADMIN & KITCHEN OPERATIONS */}
-          {/* ============================================================ */}
+      {/* ============================================================ */}
+      {/* CENTER HERO: SOLE HIGHLIGHTED QR CODE DINING PASS */}
+      {/* ============================================================ */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          width: '100%',
+          maxWidth: '520px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center'
+        }}
+      >
+        {/* Soft Gold Halo Effect behind the card */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -45%)',
+            width: '400px',
+            height: '400px',
+            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.18) 0%, rgba(247, 127, 0, 0.08) 40%, transparent 70%)',
+            filter: 'blur(35px)',
+            pointerEvents: 'none',
+            zIndex: -1
+          }}
+        />
+
+        {/* Brand Pill */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '5px 16px',
+            borderRadius: '999px',
+            background: 'rgba(255, 215, 0, 0.12)',
+            border: '1px solid rgba(255, 215, 0, 0.35)',
+            color: 'var(--gold-soft)',
+            fontSize: '0.74rem',
+            fontWeight: 800,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            marginBottom: 8
+          }}
+        >
+          ★ TABLE {selectedTable} CONTACTLESS PASS ★
+        </div>
+
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(1.9rem, 3.6vw, 2.6rem)',
+            fontWeight: 800,
+            color: '#FAF6F0',
+            lineHeight: 1.15,
+            margin: '0 auto 6px',
+            letterSpacing: '-0.01em'
+          }}
+        >
+          Scan to Order &amp; Dine
+        </h1>
+
+        <p
+          style={{
+            fontSize: '0.88rem',
+            color: 'rgba(250, 246, 240, 0.78)',
+            maxWidth: '440px',
+            margin: '0 auto 16px',
+            lineHeight: 1.45
+          }}
+        >
+          Point your smartphone camera at the pass below to browse our 100-dish menu and order directly to your table.
+        </p>
+
+        {/* ============================================================ */}
+        {/* THE HIGHLIGHTED QR CODE DISPLAY STAND */}
+        {/* ============================================================ */}
+        <div
+          className="dv-qr-stand-glow"
+          style={{
+            width: '100%',
+            maxWidth: '400px',
+            background: 'linear-gradient(165deg, rgba(26, 23, 34, 0.96) 0%, rgba(16, 14, 22, 0.98) 100%)',
+            border: '1.5px solid rgba(255, 215, 0, 0.4)',
+            borderRadius: '26px',
+            padding: '20px 20px 18px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'relative'
+          }}
+        >
+          {/* Card Top Sub-Header: Table & Live Status */}
           <div
             style={{
-              background: 'linear-gradient(160deg, rgba(26, 21, 28, 0.96) 0%, rgba(18, 14, 20, 0.96) 100%)',
-              border: '1px solid rgba(230, 57, 70, 0.32)',
-              borderRadius: '28px',
-              padding: '32px 26px',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(230, 57, 70, 0.2)',
+              width: '100%',
               display: 'flex',
-              flexDirection: 'column',
               justifyContent: 'space-between',
-              position: 'relative'
+              alignItems: 'center',
+              marginBottom: 14,
+              paddingBottom: 10,
+              borderBottom: '1px solid rgba(255, 215, 0, 0.18)'
             }}
           >
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: '14px',
-                      background: 'rgba(230, 57, 70, 0.14)',
-                      border: '1px solid rgba(230, 57, 70, 0.35)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#E63946'
-                    }}
-                  >
-                    <KitchenIcon width={22} height={22} />
-                  </div>
-                  <div>
-                    <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#FAF6F0', margin: 0 }}>
-                      Admin & Kitchen
-                    </h2>
-                    <span style={{ fontSize: '0.74rem', color: '#FF7B85', fontWeight: 600 }}>
-                      Central Operations Console
-                    </span>
-                  </div>
-                </div>
-
-                <span
-                  style={{
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    color: '#FF7B85',
-                    background: 'rgba(230, 57, 70, 0.12)',
-                    border: '1px solid rgba(230, 57, 70, 0.3)',
-                    padding: '4px 12px',
-                    borderRadius: '999px'
-                  }}
-                >
-                  Staff Portal
-                </span>
-              </div>
-
-              <p style={{ color: 'rgba(250, 246, 240, 0.75)', fontSize: '0.9rem', lineHeight: 1.55, marginBottom: 24 }}>
-                Central command console for restaurant staff, executive chefs, floor supervisors, and cashier desks.
-              </p>
-
-              {/* Management Highlights */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
-                {[
-                  { title: 'Live Kitchen Display System (KDS)', desc: 'Instant ticket dispatch with cooking timer & audio chime alerts' },
-                  { title: 'Fleet & Table Occupancy Manager', desc: 'Real-time table booking, lock controls & QR code generation' },
-                  { title: 'POS Invoicing & 5% GST Taxation', desc: 'Itemized receipts, UPI / Cash payment reconciliation' },
-                  { title: '100-Item Menu & Stock Control', desc: 'Live dish availability toggling, pricing & recipe adjustments' }
-                ].map((feat, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '14px',
-                      padding: '12px 14px',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 10
-                    }}
-                  >
-                    <span style={{ color: '#00E699', fontSize: '0.9rem', marginTop: 1 }}>✔</span>
-                    <div>
-                      <div style={{ color: '#FFF', fontSize: '0.85rem', fontWeight: 700 }}>{feat.title}</div>
-                      <div style={{ color: 'rgba(250, 246, 240, 0.6)', fontSize: '0.76rem', marginTop: 2 }}>{feat.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Primary Admin Button */}
-              <Link
-                to="/admin"
-                className="btn-dv btn-burgundy btn-block"
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div
                 style={{
-                  padding: '16px',
-                  fontSize: '1rem',
-                  fontWeight: 800,
+                  width: 28,
+                  height: 28,
+                  borderRadius: '8px',
+                  background: 'rgba(255, 215, 0, 0.12)',
+                  border: '1px solid rgba(255, 215, 0, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 10,
-                  background: 'linear-gradient(135deg, #B81D2B 0%, #E63946 100%)',
-                  color: '#FFFFFF',
-                  textDecoration: 'none',
-                  boxShadow: '0 12px 30px rgba(230, 57, 70, 0.35)',
-                  borderRadius: '16px'
+                  color: 'var(--gold)'
                 }}
               >
-                <KitchenIcon width={20} height={20} />
-                ENTER ADMIN PORTAL →
-              </Link>
+                <QrIcon width={15} height={15} />
+              </div>
+              <div style={{ textAlign: 'left' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#FAF6F0', display: 'block' }}>
+                  Dining Table {selectedTable}
+                </span>
+                <span style={{ fontSize: '0.66rem', color: 'var(--gold-soft)', fontWeight: 600 }}>
+                  DINEVO Grand Gastronomy
+                </span>
+              </div>
             </div>
 
-            <div style={{ marginTop: 18, paddingTop: 12, borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.76rem', color: 'rgba(250, 246, 240, 0.6)' }}>
-              <ShieldCheckIcon width={14} height={14} style={{ color: 'var(--gold-soft)' }} />
-              <span>Role-Based Access &middot; 256-Bit Encrypted Operations</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '3px 9px',
+                borderRadius: '999px',
+                background: 'rgba(0, 230, 153, 0.12)',
+                border: '1px solid rgba(0, 230, 153, 0.35)',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                color: '#00E699'
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: '#00E699',
+                  boxShadow: '0 0 6px #00E699'
+                }}
+              />
+              Live &amp; Ready
             </div>
           </div>
+
+          {/* CRISP WHITE QR CODE BOX - HIGH CONTRAST FOR IMMEDIATE PHONE FOCUS */}
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '16px 16px 12px',
+              boxShadow: '0 14px 40px rgba(0, 0, 0, 0.65)',
+              border: '3px solid #FFD700',
+              textAlign: 'center',
+              width: '240px',
+              boxSizing: 'border-box',
+              position: 'relative'
+            }}
+          >
+            <img
+              src={qrImageSrc}
+              alt={`Table ${selectedTable} QR Code`}
+              style={{
+                width: '195px',
+                height: '195px',
+                display: 'block',
+                margin: '0 auto',
+                borderRadius: '10px'
+              }}
+            />
+            <div
+              style={{
+                color: '#14121A',
+                fontSize: '0.92rem',
+                fontWeight: 900,
+                marginTop: 8,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase'
+              }}
+            >
+              TABLE {selectedTable} PASS
+            </div>
+            <div style={{ color: '#555555', fontSize: '0.74rem', fontWeight: 700, marginTop: 2 }}>
+              📱 Scan with your phone camera
+            </div>
+          </div>
+
+          {/* TABLE SELECTOR PILLS */}
+          <div style={{ width: '100%', marginTop: 14 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 6
+              }}
+            >
+              <span style={{ fontSize: '0.74rem', color: 'rgba(250, 246, 240, 0.7)', fontWeight: 700 }}>
+                Select Table to Switch QR:
+              </span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--gold-soft)', fontWeight: 700 }}>
+                Fleet: 8 Tables
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 7 }}>
+              {tableNumbers.map((num) => {
+                const isSelected = selectedTable === num;
+                return (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setSelectedTable(num)}
+                    style={{
+                      padding: '7px 2px',
+                      borderRadius: '10px',
+                      border: isSelected ? '1.5px solid #FFD700' : '1px solid rgba(255, 215, 0, 0.18)',
+                      background: isSelected
+                        ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.35) 0%, rgba(247, 127, 0, 0.35) 100%)'
+                        : 'rgba(255, 255, 255, 0.04)',
+                      color: isSelected ? '#FFD700' : 'rgba(250, 246, 240, 0.85)',
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.18s ease',
+                      boxShadow: isSelected ? '0 0 12px rgba(255, 215, 0, 0.25)' : 'none'
+                    }}
+                  >
+                    Table {num}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* DIRECT OPEN ACTION */}
+          <button
+            type="button"
+            onClick={() => handleValidateTable(`DINEVO-T${selectedTable}`)}
+            disabled={loading}
+            className="btn-dv btn-gold"
+            style={{
+              width: '100%',
+              padding: '12px',
+              fontSize: '0.9rem',
+              fontWeight: 800,
+              marginTop: 14,
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              cursor: 'pointer',
+              boxShadow: '0 8px 22px rgba(255, 215, 0, 0.22)'
+            }}
+          >
+            {loading ? <span className="dv-spinner" /> : `OPEN TABLE ${selectedTable} ON THIS SCREEN →`}
+          </button>
         </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* BOTTOM PROFESSIONAL UTILITY BAR / CORNER DOCK */}
+      {/* ============================================================ */}
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          marginTop: 18,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          gap: 12,
+          maxWidth: '650px',
+          width: '100%',
+          padding: '8px 16px',
+          borderRadius: '16px',
+          background: 'rgba(20, 18, 25, 0.82)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.4)'
+        }}
+      >
+        {/* Network Target Toggle */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: '0.74rem'
+          }}
+        >
+          <span style={{ color: 'var(--gold-soft)', fontWeight: 700 }}>Scan URL:</span>
+          <span
+            style={{
+              color: 'rgba(250, 246, 240, 0.7)',
+              fontFamily: 'monospace',
+              maxWidth: '180px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+            title={currentQrUrl}
+          >
+            {currentQrUrl}
+          </span>
+          {lanIp && lanIp !== 'localhost' && (
+            <button
+              type="button"
+              onClick={() => setNetworkTarget(networkTarget === 'lan' ? 'origin' : 'lan')}
+              title="Toggle between Wi-Fi LAN IP and Localhost"
+              style={{
+                background: networkTarget === 'lan' ? 'rgba(0, 230, 153, 0.18)' : 'rgba(255, 255, 255, 0.08)',
+                border: networkTarget === 'lan' ? '1px solid #00E699' : '1px solid rgba(255, 255, 255, 0.2)',
+                color: networkTarget === 'lan' ? '#00E699' : '#FFF',
+                padding: '3px 8px',
+                borderRadius: '6px',
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              {networkTarget === 'lan' ? '📶 Wi-Fi IP' : '💻 Local'}
+            </button>
+          )}
+        </div>
+
+        <div style={{ width: 1, height: 18, background: 'rgba(255, 255, 255, 0.12)' }} />
+
+        {/* Webcam Scanner for physical printed paper passes */}
+        <button
+          type="button"
+          onClick={() => setShowCamera(true)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'rgba(250, 246, 240, 0.85)',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            cursor: 'pointer',
+            padding: '4px 8px',
+            borderRadius: '8px',
+            transition: 'color 0.2s'
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(250, 246, 240, 0.85)')}
+        >
+          <QrIcon width={14} height={14} /> Webcam Scanner
+        </button>
+
+        <div style={{ width: 1, height: 18, background: 'rgba(255, 255, 255, 0.12)' }} />
+
+        {/* Link to Full Menu */}
+        <Link
+          to="/menu"
+          style={{
+            color: 'var(--gold-soft)',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4
+          }}
+        >
+          Explore 100 Dishes →
+        </Link>
       </div>
 
       {/* WEBCAM CAMERA QR SCANNER MODAL */}
